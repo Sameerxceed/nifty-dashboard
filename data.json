@@ -1,0 +1,50 @@
+{
+  "nifty": {
+    "price": "N/A",
+    "change": "+0",
+    "pct": "+0%",
+    "high": "N/A",
+    "low": "N/A",
+    "trend": "neutral"
+  },
+  "vix": {
+    "value": "N/A",
+    "change": "0",
+    "level": "moderate"
+  },
+  "news": [],
+  "gift": {},
+  "crude": {},
+  "inr": {},
+  "fiidii": {},
+  "pivot": {},
+  "oi": {},
+  "global_mkts": {},
+  "sentiment": {},
+  "morning_prediction": {},
+  "brief": "Morning brief not yet generated.",
+  "accuracy": {
+    "morning_bias": "N/A",
+    "open_price": "N/A",
+    "current_price": "N/A",
+    "move_pts": "N/A",
+    "correct": null,
+    "verdict": "Tracking"
+  },
+  "pivot_alerts": [],
+  "intraday_analysis": "",
+  "session": "session_2",
+  "session_label": "Mid-Morning 11:15 AM",
+  "updated_time": "11:46",
+  "updated_date": "Tuesday, 24 February 2026",
+  "all_sessions": [
+    {
+      "time": "11:46",
+      "session": "session_2",
+      "label": "Mid-Morning 11:15 AM",
+      "nifty": "N/A",
+      "change": "+0",
+      "trend": "neutral"
+    }
+  ]
+}
