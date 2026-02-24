@@ -67,15 +67,42 @@ def ask_json(prompt):
     return json.loads(m.group(1))
 
 def ask_prose(prompt):
-    return call_gemini(prompt)
+    import time
+    for attempt in range(3):
+        try:
+            result = call_gemini(prompt)
+            time.sleep(4)
+            return result
+        except Exception as e:
+            if "429" in str(e):
+                wait = 15 * (attempt + 1)
+                print("    rate limit on prose, waiting " + str(wait) + "s...")
+                time.sleep(wait)
+            else:
+                print("    prose warning: " + str(e)[:80])
+                return ""
+    return ""
 
 def safe(key, default, label, prompt):
+    import time
     print("  " + label + "...")
-    try:
-        return ask_json(prompt)
-    except Exception as e:
-        print("    warning: " + str(e)[:80])
-        return default
+    for attempt in range(3):
+        try:
+            result = ask_json(prompt)
+            time.sleep(4)
+            return result
+        except Exception as e:
+            msg = str(e)[:120]
+            if "429" in msg:
+                wait = 15 * (attempt + 1)
+                print("    rate limit, waiting " + str(wait) + "s...")
+                time.sleep(wait)
+            else:
+                print("    warning: " + msg)
+                time.sleep(4)
+                return default
+    print("    failed after 3 attempts")
+    return default
 
 # Load previous data
 prev_data = {}
