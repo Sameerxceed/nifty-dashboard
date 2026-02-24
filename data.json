@@ -33,9 +33,9 @@
   },
   "pivot_alerts": [],
   "intraday_analysis": "",
-  "session": "session_3",
-  "session_label": "Post-Lunch 1:15 PM",
-  "updated_time": "13:57",
+  "session": "closing",
+  "session_label": "Pre-Close 3:15 PM",
+  "updated_time": "16:01",
   "updated_date": "Tuesday, 24 February 2026",
   "all_sessions": [
     {
@@ -50,6 +50,14 @@
       "time": "13:57",
       "session": "session_3",
       "label": "Post-Lunch 1:15 PM",
+      "nifty": "N/A",
+      "change": "+0",
+      "trend": "neutral"
+    },
+    {
+      "time": "16:01",
+      "session": "closing",
+      "label": "Pre-Close 3:15 PM",
       "nifty": "N/A",
       "change": "+0",
       "trend": "neutral"
