@@ -1,0 +1,56 @@
+name: Nifty Live Dashboard
+
+on:
+  schedule:
+    # All times in UTC (IST = UTC + 5:30)
+    - cron: '30 2 * * 1-5'   # 08:00 IST — Morning Brief
+    - cron: '45 3 * * 1-5'   # 09:15 IST — Market Open
+    - cron: '45 5 * * 1-5'   # 11:15 IST — Mid-Morning
+    - cron: '45 7 * * 1-5'   # 13:15 IST — Post-Lunch
+    - cron: '45 9 * * 1-5'   # 15:15 IST — Pre-Close
+
+  workflow_dispatch:           # Manual trigger anytime from GitHub UI
+
+# Allow GitHub Actions to push to Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pytz
+
+      - name: Restore previous data.json (if exists)
+        run: |
+          git fetch origin gh-pages 2>/dev/null || true
+          git checkout origin/gh-pages -- data.json 2>/dev/null || echo "No previous data.json found, starting fresh"
+
+      - name: Generate dashboard
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python generate.py
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          include_files: |
+            index.html
+            data.json
+          commit_message: "🔄 Dashboard updated — ${{ github.run_id }}"
