@@ -21,6 +21,7 @@
   "oi": {},
   "global_mkts": {},
   "sentiment": {},
+  "perspectives": {},
   "morning_prediction": {},
   "brief": "Morning brief not yet generated.",
   "accuracy": {
@@ -35,7 +36,7 @@
   "intraday_analysis": "",
   "session": "session_3",
   "session_label": "Post-Lunch 1:15 PM",
-  "updated_time": "13:57",
+  "updated_time": "14:39",
   "updated_date": "Wednesday, 25 February 2026",
   "all_sessions": [
     {
@@ -63,7 +64,7 @@
       "trend": "neutral"
     },
     {
-      "time": "13:57",
+      "time": "14:39",
       "session": "session_3",
       "label": "Post-Lunch 1:15 PM",
       "nifty": "N/A",
