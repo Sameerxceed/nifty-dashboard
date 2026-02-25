@@ -36,7 +36,7 @@
   "intraday_analysis": "",
   "session": "session_3",
   "session_label": "Post-Lunch 1:15 PM",
-  "updated_time": "14:39",
+  "updated_time": "14:52",
   "updated_date": "Wednesday, 25 February 2026",
   "all_sessions": [
     {
@@ -64,7 +64,7 @@
       "trend": "neutral"
     },
     {
-      "time": "14:39",
+      "time": "14:52",
       "session": "session_3",
       "label": "Post-Lunch 1:15 PM",
       "nifty": "N/A",
