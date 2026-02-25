@@ -341,7 +341,7 @@
   <!-- MORNING BRIEF -->
   <div class="sec">AI Market Brief</div>
   <div class="card">
-    <div class="card-title"> AI Analysis</div>
+    <div class="card-title">Gemini AI Analysis</div>
     <div id="brief-content">
       <div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>AI generating market brief...</span></div>
     </div>
@@ -359,13 +359,8 @@
 "use strict";
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-// IMPORTANT: Replace with your actual Gemini API key
-const GEMINI_KEY = "AIzaSyBAX1qTDFJYum1xvatM6Wl9H3f2DWBkclM";
-
-// ── YOUR VERCEL API ──────────────────────────────────────────────────────────
-// After deploying to Vercel, replace this URL with your actual deployment URL
-// e.g. "https://nifty-api.vercel.app/api/quotes"
 const API_URL = "https://nifty-api.vercel.app/api/quotes";
+const GEMINI_KEY = "AIzaSyBAX1qTDFJYum1xvatM6W19H3f2DWBkc1M";
 
 // Fallback proxies (used only if Vercel API is unavailable)
 const PROXY1 = "https://api.allorigins.win/get?url=";
@@ -465,9 +460,10 @@ function countdown(){
 // ── PRIMARY API + FALLBACK ───────────────────────────────────────────────────
 // Timeout wrapper - works in ALL browsers
 function fetchWithTimeout(url, ms, opts){
+  const finalOpts = Object.assign({method:"GET", mode:"cors", headers:{"Accept":"application/json"}}, opts||{});
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("Timeout after "+ms+"ms")), ms);
-    fetch(url, opts||{})
+    fetch(url, finalOpts)
       .then(r => { clearTimeout(timer); resolve(r); })
       .catch(e => { clearTimeout(timer); reject(e); });
   });
@@ -617,24 +613,37 @@ function updateMarketData(quotes){
 
 // ── GEMINI AI CALLS ───────────────────────────────────────────────────────────
 async function callGemini(prompt, json=false){
-  if(!GEMINI_KEY||GEMINI_KEY==="YOUR_GEMINI_API_KEY") return null;
+  if(!GEMINI_KEY) return null;
   const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+  const finalPrompt = prompt + (json ? "\n\nReturn ONLY valid JSON. No markdown, no backticks, no explanation. Raw JSON only." : "");
   const body={
-    contents:[{parts:[{text:prompt+(json?"\n\nReturn ONLY valid JSON, no markdown, no explanation.":"")}]}],
-    generationConfig:{temperature:0.3,maxOutputTokens:1500}
+    contents:[{parts:[{text:finalPrompt}]}],
+    generationConfig:{temperature:0.3,maxOutputTokens:2000}
   };
   try{
     const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok) return null;
+    if(!r.ok){
+      const err=await r.text();
+      console.error("Gemini HTTP error:",r.status,err);
+      return null;
+    }
     const d=await r.json();
-    return d.candidates?.[0]?.content?.parts?.[0]?.text||null;
-  }catch(e){return null;}
+    if(d.error){console.error("Gemini API error:",d.error.message); return null;}
+    const text = d.candidates?.[0]?.content?.parts?.[0]?.text||null;
+    if(!text){console.error("Gemini empty response:",JSON.stringify(d)); return null;}
+    console.log("Gemini OK, length:",text.length);
+    return text;
+  }catch(e){
+    console.error("Gemini fetch error:",e.message);
+    return null;
+  }
 }
 
 async function fetchAIData(){
-  const ist=getIST();
-  const today=ist.toLocaleDateString("en-IN",{timeZone:"UTC",weekday:"long",day:"2-digit",month:"long",year:"numeric"});
-  const time=String(ist.getUTCHours()).padStart(2,"0")+":"+String(ist.getUTCMinutes()).padStart(2,"0");
+  const now = new Date();
+  const today = now.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+  const time = now.toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hour12:false});
+  console.log("Fetching AI data for:",today,time);
 
   // Run all AI fetches in parallel
   const [news, fiidii, pivots, oi, sentiment, perspectives, brief] = await Promise.allSettled([
@@ -855,15 +864,11 @@ async function poll(){
   }
 
   // Load AI data once on first load
-  if(!aiLoaded && GEMINI_KEY && GEMINI_KEY!=="YOUR_GEMINI_API_KEY"){
+  if(!aiLoaded && GEMINI_KEY){
     aiLoaded=true;
     fetchAIData().catch(()=>{});
   } else if(!aiLoaded){
-    $("news-container").innerHTML='<div style="color:var(--yellow);font-size:11px;padding:8px 0">⚠ Add your Gemini API key to enable AI analysis. See instructions below.</div>';
-    $("fiidii-content").innerHTML='<div style="color:var(--dim);font-size:11px">Add GEMINI_KEY to enable</div>';
-    $("three-view-section").innerHTML='<div style="color:var(--dim);font-size:11px">Add GEMINI_KEY to enable</div>';
-    $("brief-content").innerHTML='<div style="color:var(--dim);font-size:11px">Add GEMINI_KEY to enable</div>';
-    aiLoaded=true;
+    aiLoaded=true; // will load when key is entered via banner
   }
 }
 
