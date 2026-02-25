@@ -400,37 +400,59 @@ function setC(id,c){ const e=$(id); if(e) e.style.color=c; }
 
 // ── SESSION LOGIC ─────────────────────────────────────────────────────────────
 function getIST(){
-  // Correct IST: always UTC+5:30, regardless of local timezone
-  const n=new Date();
-  const utc=n.getTime() + (n.getTimezoneOffset()*60000);
-  return new Date(utc + (5.5*3600000));
+  // Use browser's built-in timezone - most reliable
+  return new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
 }
 function getSession(){
-  const ist=getIST(), h=ist.getUTCHours(), m=ist.getUTCMinutes(), t=h*60+m;
+  const now = new Date();
+  const h = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",hour12:false}));
+  const m = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",minute:"2-digit"}));
+  const t = h*60+m;
   if(t<9*60+15)  return ["Morning Brief 8:00 AM","morning_brief"];
   if(t<11*60+15) return ["Market Open 9:15 AM","session_1"];
   if(t<13*60+15) return ["Mid-Morning 11:15 AM","session_2"];
   if(t<15*60+15) return ["Post-Lunch 1:15 PM","session_3"];
-  return ["Pre-Close 3:15 PM","closing"];
+  if(t<15*60+45) return ["Pre-Close 3:15 PM","closing"];
+  return ["After Market","after_market"];
 }
 function isMarket(){
-  const ist=getIST(), h=ist.getUTCHours(), m=ist.getUTCMinutes(), d=ist.getUTCDay();
+  const now = new Date();
+  const day = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",weekday:"short"}) === "Sun" ? 0 : 
+               now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",weekday:"short"}) === "Sat" ? 6 : 1);
+  // Simpler: use UTC day adjusted for IST
+  const istOffset = 5.5 * 60; // IST is UTC+5:30
+  const istDate = new Date(now.getTime() + istOffset * 60000);
+  const d = istDate.getUTCDay();
   if(d===0||d===6) return false;
-  const t=h*60+m; return t>=9*15&&t<=15*30;
+  const h = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",hour12:false}));
+  const m = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",minute:"2-digit"}));
+  const t = h*60+m;
+  return t>=9*60+15 && t<=15*60+30;
 }
 
 // ── STAMP + COUNTDOWN ─────────────────────────────────────────────────────────
 function updateStamp(){
-  const ist=getIST();
-  const p=x=>String(x).padStart(2,"0");
-  const ts=p(ist.getUTCHours())+":"+p(ist.getUTCMinutes())+":"+p(ist.getUTCSeconds())+" IST";
-  set("stamp",ts);
-  set("footer-stamp","Updated "+ts+" · "+ist.toLocaleDateString("en-IN",{timeZone:"UTC",day:"2-digit",month:"short",year:"numeric"}));
+  const now = new Date();
+  // Get IST time components directly
+  const istStr = now.toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour:"2-digit", minute:"2-digit", second:"2-digit",
+    hour12: false
+  });
+  const dateStr = now.toLocaleDateString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    day:"2-digit", month:"short", year:"numeric"
+  });
+  set("stamp", istStr + " IST");
+  set("footer-stamp", "Updated " + istStr + " IST · " + dateStr);
 }
 
 function countdown(){
   const sessions=[[8,0,"Morning Brief"],[9,15,"Market Open"],[11,15,"Mid-Morning"],[13,15,"Post-Lunch"],[15,15,"Pre-Close"]];
-  const ist=getIST(), h=ist.getUTCHours(), m=ist.getUTCMinutes(), s=ist.getUTCSeconds();
+  const now = new Date();
+  const h = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",hour12:false}));
+  const m = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",minute:"2-digit"}));
+  const s = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",second:"2-digit"}));
   const cur=h*3600+m*60+s;
   let nxt=null,lbl="";
   for(const[sh,sm,sl]of sessions){const t=sh*3600+sm*60;if(t>cur){nxt=t;lbl=sl;break;}}
@@ -440,12 +462,55 @@ function countdown(){
   set("next-session","Next: "+lbl+" in "+(rh>0?rh+"h ":"")+p(rm)+"m "+p(rs)+"s");
 }
 
+// ── PRIMARY API + FALLBACK ───────────────────────────────────────────────────
+// Timeout wrapper - works in ALL browsers
+function fetchWithTimeout(url, ms, opts){
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("Timeout after "+ms+"ms")), ms);
+    fetch(url, opts||{})
+      .then(r => { clearTimeout(timer); resolve(r); })
+      .catch(e => { clearTimeout(timer); reject(e); });
+  });
+}
+
+async function fetchAllQuotes(){
+  // PRIMARY: Vercel API - fast, reliable, no CORS
+  try {
+    const r = await fetchWithTimeout(API_URL + "?t=" + Date.now(), 8000);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    if (d.ok && d.quotes && d.quotes.length > 0) {
+      return d.quotes.map(q => ({
+        symbol: q.symbol, name: q.name,
+        price: q.price, change: q.change, changePct: q.changePct,
+        high: q.high, low: q.low, open: q.open, prevClose: q.prevClose,
+        regularMarketPrice: q.price, regularMarketChange: q.change,
+        regularMarketChangePercent: q.changePct,
+        regularMarketDayHigh: q.high, regularMarketDayLow: q.low,
+      }));
+    }
+  } catch(e) { console.warn("Vercel API failed:", e.message); }
+
+  // FALLBACK: allorigins proxy
+  try {
+    const syms = "%5ENSEI,%5ENSEBANK,%5EINDIAVIX,USDINR%3DX,CL%3DF,GC%3DF,%5EDJI,%5EIXIC,%5EN225,%5EHSI,%5EFTSE";
+    const url  = YF + syms + "&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketDayHigh,regularMarketDayLow,shortName,symbol";
+    const r = await fetchWithTimeout(PROXY1 + encodeURIComponent(url), 10000);
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    const quotes = JSON.parse(d.contents).quoteResponse.result || [];
+    if (quotes.length > 0) return quotes;
+  } catch(e) {}
+
+  return [];
+}
+
 // ── FETCH WITH PROXY FALLBACK ─────────────────────────────────────────────────
 async function fetchYF(symbols){
   // This is kept as fallback only - main fetch uses fetchAllQuotes()
   try {
     const url = YF + symbols + "&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketDayHigh,regularMarketDayLow,shortName,symbol";
-    const r = await fetch(PROXY1 + encodeURIComponent(url), {signal: AbortSignal.timeout(8000)});
+    const r = await fetch(PROXY1 + encodeURIComponent(url), {});
     if (!r.ok) throw 0;
     const d = await r.json();
     return JSON.parse(d.contents).quoteResponse.result || [];
@@ -560,7 +625,7 @@ async function callGemini(prompt, json=false){
     generationConfig:{temperature:0.2,maxOutputTokens:1500}
   };
   try{
-    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:AbortSignal.timeout(30000)});
+    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     if(!r.ok) return null;
     const d=await r.json();
     return d.candidates?.[0]?.content?.parts?.[0]?.text||null;
