@@ -225,11 +225,85 @@ if SESSION == "morning_brief":
     )
 
 else:
-    # carry forward morning data
-    for k in ["gift","crude","inr","fiidii","pivot","oi","global_mkts","sentiment"]:
-        data[k] = prev_data.get(k, {})
-    data["morning_prediction"] = prev_data.get("morning_prediction", {})
-    data["brief"] = prev_data.get("brief", "Morning brief not yet generated.")
+    # carry forward morning data — but if NO previous data at all, do a full fetch now
+    has_prev = bool(prev_data.get("nifty") or prev_data.get("sentiment"))
+
+    if not has_prev:
+        print("  No previous data found — running full fetch for first-time setup...")
+        import concurrent.futures, threading
+        def fetch_all_now():
+            tasks = {
+                "gift":    ("Gift Nifty",
+                    "Search Gift Nifty or SGX Nifty current value " + TODAY + ". "
+                    'Return JSON: {"value":"XXXXX","change":"+/-XX","pct":"+/-X.XX%","gap_pts":"+/-XX","signal":"gap_up/gap_down/flat"}',
+                    {"value":"N/A","change":"0","pct":"0%","gap_pts":"0","signal":"flat"}),
+                "crude":   ("Crude Oil",
+                    "Search WTI crude oil price now " + TODAY + ". "
+                    'Return JSON: {"price":"XX.XX","change":"+/-X.XX","pct":"+/-X.XX%","signal":"bullish/bearish/neutral"}',
+                    {"price":"N/A","change":"0","pct":"0%","signal":"neutral"}),
+                "inr":     ("USD/INR",
+                    "Search USD INR exchange rate " + TODAY + ". "
+                    'Return JSON: {"rate":"XX.XX","change":"+/-X.XX","signal":"rupee_strong/rupee_weak/stable"}',
+                    {"rate":"N/A","change":"0","signal":"stable"}),
+                "fiidii":  ("FII/DII",
+                    "Search FII DII cash market activity NSE India " + TODAY + ". "
+                    'Return JSON: {"fii":{"buy":"XXXX","sell":"XXXX","net":"+/-XXXX"},"dii":{"buy":"XXXX","sell":"XXXX","net":"+/-XXXX"},"signal":"both_buying/both_selling/mixed"}',
+                    {"fii":{"buy":"N/A","sell":"N/A","net":"N/A"},"dii":{"buy":"N/A","sell":"N/A","net":"N/A"},"signal":"mixed"}),
+                "pivot":   ("Pivots",
+                    "Search Nifty 50 pivot points today " + TODAY + ". "
+                    'Return JSON: {"prev_high":"XXXXX","prev_low":"XXXXX","prev_close":"XXXXX","r3":"XXXXX","r2":"XXXXX","r1":"XXXXX","pp":"XXXXX","s1":"XXXXX","s2":"XXXXX","s3":"XXXXX"}',
+                    {"prev_high":"N/A","prev_low":"N/A","prev_close":"N/A","r3":"N/A","r2":"N/A","r1":"N/A","pp":"N/A","s1":"N/A","s2":"N/A","s3":"N/A"}),
+                "oi":      ("OI/MaxPain",
+                    "Search Nifty 50 options max pain PCR today " + TODAY + ". "
+                    'Return JSON: {"max_pain":"XXXXX","pcr":"X.XX","pcr_signal":"bullish/bearish/neutral","top_ce_strike":"XXXXX","top_pe_strike":"XXXXX"}',
+                    {"max_pain":"N/A","pcr":"N/A","pcr_signal":"neutral","top_ce_strike":"N/A","top_pe_strike":"N/A"}),
+                "global_mkts": ("Global Markets",
+                    "Search Dow Jones Nasdaq Nikkei Hang Seng performance " + TODAY + ". "
+                    'Return JSON array: [{"name":"...","value":"...","change":"+/-XXX","pct":"+/-X.XX%"}]',
+                    []),
+                "sentiment": ("Sentiment",
+                    "Rate Nifty 50 market sentiment right now " + TODAY + " " + TIME + ". "
+                    'Return JSON: {"score":50,"label":"Bullish/Neutral/Bearish","summary":"2 sentences"}',
+                    {"score":50,"label":"Neutral","summary":"Market analysis pending."}),
+                "perspectives": ("3 Perspectives",
+                    "Identify the most important market event for Nifty today " + TODAY + ". "
+                    "Write 3 perspectives — bull, neutral, bear. "
+                    'Return JSON: {"key_event":"headline","bull_view":"2 sentences","neutral_view":"2 sentences","bear_view":"2 sentences"}',
+                    {"key_event":"Market Update","bull_view":"Bullish case pending.","neutral_view":"Neutral case pending.","bear_view":"Bearish case pending."}),
+            }
+            lock = threading.Lock()
+            results = {}
+            def do_fetch(key):
+                label, prompt, default = tasks[key]
+                val = safe(key, default, label, prompt)
+                with lock:
+                    results[key] = val
+            with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
+                futs = {ex.submit(do_fetch, k): k for k in tasks}
+                concurrent.futures.wait(futs, timeout=300)
+            return results
+
+        fetched = fetch_all_now()
+        for k, v in fetched.items():
+            data[k] = v
+
+        data["brief"] = ask_prose(
+            "Write a concise Nifty 50 market brief for " + TODAY + " " + TIME + ". "
+            "Include: Nifty trend, key levels, FII activity, global cues, trading outlook. "
+            "Keep it under 200 words."
+        )
+        data["morning_prediction"] = {
+            "bias":       data["sentiment"].get("label","Neutral"),
+            "score":      data["sentiment"].get("score", 50),
+            "pivot_pp":   data["pivot"].get("pp","N/A"),
+            "nifty_open": data["nifty"].get("price","N/A"),
+            "time":       TIME,
+        }
+    else:
+        for k in ["gift","crude","inr","fiidii","pivot","oi","global_mkts","sentiment","perspectives"]:
+            data[k] = prev_data.get(k, {})
+        data["morning_prediction"] = prev_data.get("morning_prediction", {})
+        data["brief"] = prev_data.get("brief", "Morning brief not yet generated.")
 
     # Accuracy tracker
     mp = data["morning_prediction"]
