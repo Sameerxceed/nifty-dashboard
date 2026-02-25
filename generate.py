@@ -71,11 +71,11 @@ def ask_prose(prompt):
     for attempt in range(3):
         try:
             result = call_gemini(prompt)
-            time.sleep(4)
+            time.sleep(2)
             return result
         except Exception as e:
             if "429" in str(e):
-                wait = 15 * (attempt + 1)
+                wait = 12 * (attempt + 1)
                 print("    rate limit on prose, waiting " + str(wait) + "s...")
                 time.sleep(wait)
             else:
@@ -89,17 +89,17 @@ def safe(key, default, label, prompt):
     for attempt in range(3):
         try:
             result = ask_json(prompt)
-            time.sleep(4)
+            time.sleep(2)
             return result
         except Exception as e:
             msg = str(e)[:120]
             if "429" in msg:
-                wait = 15 * (attempt + 1)
+                wait = 12 * (attempt + 1)
                 print("    rate limit, waiting " + str(wait) + "s...")
                 time.sleep(wait)
             else:
                 print("    warning: " + msg)
-                time.sleep(4)
+                time.sleep(2)
                 return default
     print("    failed after 3 attempts")
     return default
@@ -127,57 +127,72 @@ data["vix"] = safe("vix",
     'Return JSON: {"value":"XX.XX","change":"+/-X.XX","level":"low/moderate/elevated/high"}')
 
 data["news"] = safe("news", [],
-    "Breaking News",
-    "Search latest 4 breaking news affecting Indian Nifty market now " + TODAY + " " + TIME + ". "
-    'Return JSON array: [{"tag":"GEO/MARKET/MACRO","headline":"under 15 words","impact":"positive/negative/neutral","time":"HH:MM"}]')
+    "Breaking News + 3 Views",
+    "Search latest 4 most important breaking news events affecting Indian Nifty 50 market right now " + TODAY + " " + TIME + ". "
+    "For each news item also provide a bull, neutral, and bear interpretation for Nifty traders. "
+    'Return JSON array: ['
+    '  {"tag":"GEO/MARKET/MACRO/SECTOR","headline":"under 12 words","impact":"positive/negative/neutral","time":"HH:MM",'
+    '   "bull":"1 sentence bullish take for Nifty with level/target",'
+    '   "neutral":"1 sentence neutral take and what to watch",'
+    '   "bear":"1 sentence bearish risk for Nifty with level"}'
+    ']' )
 
 if SESSION == "morning_brief":
-    data["gift"] = safe("gift",
-        {"value":"N/A","change":"0","pct":"0%","gap_pts":"0","signal":"flat"},
-        "Gift Nifty",
-        "Search Gift Nifty pre-market value " + TODAY + ". "
-        'Return JSON: {"value":"XXXXX","change":"+/-XX","pct":"+/-X.XX%","gap_pts":"+/-XX","signal":"gap_up/gap_down/flat"}')
+    import concurrent.futures, threading
 
-    data["crude"] = safe("crude",
-        {"price":"N/A","change":"0","pct":"0%","signal":"neutral"},
-        "Crude",
-        "Search WTI crude oil price " + TODAY + ". "
-        'Return JSON: {"price":"XX.XX","change":"+/-X.XX","pct":"+/-X.XX%","signal":"bullish/bearish/neutral"}')
+    # Run all 8 data fetches in parallel (4 threads) to cut time from ~80s to ~25s
+    def fetch_all():
+        tasks = {
+            "gift":    ("Gift Nifty",
+                "Search Gift Nifty pre-market value " + TODAY + ". "
+                'Return JSON: {"value":"XXXXX","change":"+/-XX","pct":"+/-X.XX%","gap_pts":"+/-XX","signal":"gap_up/gap_down/flat"}',
+                {"value":"N/A","change":"0","pct":"0%","gap_pts":"0","signal":"flat"}),
+            "crude":   ("Crude Oil",
+                "Search WTI crude oil price " + TODAY + ". "
+                'Return JSON: {"price":"XX.XX","change":"+/-X.XX","pct":"+/-X.XX%","signal":"bullish/bearish/neutral"}',
+                {"price":"N/A","change":"0","pct":"0%","signal":"neutral"}),
+            "inr":     ("USD/INR",
+                "Search USD INR exchange rate today " + TODAY + ". "
+                'Return JSON: {"rate":"XX.XX","change":"+/-X.XX","signal":"rupee_strong/rupee_weak/stable"}',
+                {"rate":"N/A","change":"0","signal":"stable"}),
+            "fiidii":  ("FII/DII",
+                "Search FII DII cash market activity NSE India " + TODAY + ". "
+                'Return JSON: {"fii":{"buy":"XXXX","sell":"XXXX","net":"+/-XXXX"},"dii":{"buy":"XXXX","sell":"XXXX","net":"+/-XXXX"},"signal":"both_buying/both_selling/mixed"}',
+                {"fii":{"buy":"N/A","sell":"N/A","net":"N/A"},"dii":{"buy":"N/A","sell":"N/A","net":"N/A"},"signal":"mixed"}),
+            "pivot":   ("Pivots",
+                "Search Nifty 50 yesterday high low close calculate standard pivot points " + TODAY + ". "
+                'Return JSON: {"prev_high":"XXXXX","prev_low":"XXXXX","prev_close":"XXXXX","r3":"XXXXX","r2":"XXXXX","r1":"XXXXX","pp":"XXXXX","s1":"XXXXX","s2":"XXXXX","s3":"XXXXX"}',
+                {"prev_high":"N/A","prev_low":"N/A","prev_close":"N/A","r3":"N/A","r2":"N/A","r1":"N/A","pp":"N/A","s1":"N/A","s2":"N/A","s3":"N/A"}),
+            "oi":      ("OI/MaxPain",
+                "Search Nifty 50 options max pain PCR weekly expiry " + TODAY + ". "
+                'Return JSON: {"max_pain":"XXXXX","pcr":"X.XX","pcr_signal":"bullish/bearish/neutral","top_ce_strike":"XXXXX","top_pe_strike":"XXXXX"}',
+                {"max_pain":"N/A","pcr":"N/A","pcr_signal":"neutral","top_ce_strike":"N/A","top_pe_strike":"N/A"}),
+            "global_mkts": ("Global Markets",
+                "Search overnight Dow Jones Nasdaq Nikkei Hang Seng FTSE performance " + TODAY + ". "
+                'Return JSON array: [{"name":"...","value":"...","change":"+/-XXX","pct":"+/-X.XX%"}]',
+                []),
+            "sentiment": ("Sentiment",
+                "Rate overall Nifty 50 opening sentiment " + TODAY + " based on Gift Nifty crude VIX FII global USD/INR. "
+                'Return JSON: {"score":50,"label":"Bullish","summary":"2 sentences"}',
+                {"score":50,"label":"Neutral","summary":"Market analysis pending."}),
+        }
+        lock = threading.Lock()
+        results = {}
 
-    data["inr"] = safe("inr",
-        {"rate":"N/A","change":"0","signal":"stable"},
-        "USD/INR",
-        "Search USD INR exchange rate today " + TODAY + ". "
-        'Return JSON: {"rate":"XX.XX","change":"+/-X.XX","signal":"rupee_strong/rupee_weak/stable"}')
+        def do_fetch(key):
+            label, prompt, default = tasks[key]
+            val = safe(key, default, label, prompt)
+            with lock:
+                results[key] = val
 
-    data["fiidii"] = safe("fiidii",
-        {"fii":{"buy":"N/A","sell":"N/A","net":"N/A"},"dii":{"buy":"N/A","sell":"N/A","net":"N/A"},"signal":"mixed"},
-        "FII/DII",
-        "Search FII DII activity NSE India " + TODAY + ". "
-        'Return JSON: {"fii":{"buy":"XXXX","sell":"XXXX","net":"+/-XXXX"},"dii":{"buy":"XXXX","sell":"XXXX","net":"+/-XXXX"},"signal":"both_buying/both_selling/mixed"}')
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as ex:
+            futs = {ex.submit(do_fetch, k): k for k in tasks}
+            concurrent.futures.wait(futs, timeout=300)
+        return results
 
-    data["pivot"] = safe("pivot",
-        {"prev_high":"N/A","prev_low":"N/A","prev_close":"N/A","r3":"N/A","r2":"N/A","r1":"N/A","pp":"N/A","s1":"N/A","s2":"N/A","s3":"N/A"},
-        "Pivots",
-        "Search Nifty 50 yesterday OHLC calculate standard pivot points " + TODAY + ". "
-        'Return JSON: {"prev_high":"XXXXX","prev_low":"XXXXX","prev_close":"XXXXX","r3":"XXXXX","r2":"XXXXX","r1":"XXXXX","pp":"XXXXX","s1":"XXXXX","s2":"XXXXX","s3":"XXXXX"}')
-
-    data["oi"] = safe("oi",
-        {"max_pain":"N/A","pcr":"N/A","pcr_signal":"neutral","top_ce_strike":"N/A","top_pe_strike":"N/A"},
-        "OI/MaxPain",
-        "Search Nifty 50 options max pain PCR weekly expiry " + TODAY + ". "
-        'Return JSON: {"max_pain":"XXXXX","pcr":"X.XX","pcr_signal":"bullish/bearish/neutral","top_ce_strike":"XXXXX","top_pe_strike":"XXXXX"}')
-
-    data["global_mkts"] = safe("global_mkts", [],
-        "Global Markets",
-        "Search overnight Dow Jones Nasdaq Nikkei Hang Seng FTSE " + TODAY + ". "
-        'Return JSON array: [{"name":"...","value":"...","change":"+/-XXX","pct":"+/-X.XX%"}]')
-
-    data["sentiment"] = safe("sentiment",
-        {"score":50,"label":"Neutral","summary":"Market analysis pending."},
-        "Sentiment",
-        "Rate overall Nifty 50 opening sentiment " + TODAY + " based on Gift Nifty crude VIX FII global USD/INR. "
-        'Return JSON: {"score":50,"label":"Bullish","summary":"2 sentences"}')
+    fetched = fetch_all()
+    for k, v in fetched.items():
+        data[k] = v
 
     data["morning_prediction"] = {
         "bias":       data["sentiment"].get("label","Neutral"),
@@ -186,6 +201,21 @@ if SESSION == "morning_brief":
         "nifty_open": data["nifty"].get("price","N/A"),
         "time":       TIME,
     }
+
+    # 3-perspective analysis for Instagram
+    data["perspectives"] = safe("perspectives",
+        {"key_event":"Market Summary",
+         "bull_view":"Bullish case pending.",
+         "neutral_view":"Neutral case pending.",
+         "bear_view":"Bearish case pending."},
+        "3 Perspectives",
+        "Identify the single most important market event or data point for Nifty today " + TODAY + ". "
+        "Write 3 perspectives — bull, neutral, bear — on how traders should interpret it. "
+        'Return JSON: {"key_event":"headline under 12 words",'
+        ' "bull_view":"2-3 sentences bullish take with price targets",'
+        ' "neutral_view":"2-3 sentences neutral take with range estimate",'
+        ' "bear_view":"2-3 sentences bearish take with downside levels"}'
+    )
 
     data["brief"] = ask_prose(
         "Write concise Nifty 50 morning brief for " + TODAY + ". "
@@ -267,9 +297,13 @@ new_entry = {
 }
 data["all_sessions"] = [s for s in prev_sessions if s.get("session") != SESSION] + [new_entry]
 
-with open("data.json","w") as f:
-    json.dump(data, f, indent=2)
-print("data.json saved")
+# Always save whatever data we have, even partial
+try:
+    with open("data.json","w") as f:
+        json.dump(data, f, indent=2)
+    print("data.json saved")
+except Exception as e:
+    print("Warning: could not save data.json: " + str(e))
 
 # ── HTML BUILDER ──────────────────────────────────────────────────────────────
 
@@ -326,23 +360,66 @@ def global_rows(markets):
 def news_items(items):
     if not items:
         return '<div style="font-size:12px;color:#2a3d58;text-align:center;padding:16px">No news</div>'
-    tag_c = {"GEO":"#ff6b35","MARKET":"#00c8ff","MACRO":"#b388ff"}
+    tag_c = {"GEO":"#ff6b35","MARKET":"#00c8ff","MACRO":"#b388ff","SECTOR":"#ffd600"}
     imp_s = {"positive":"▲","negative":"▼","neutral":"●"}
     imp_c = {"positive":"#00f088","negative":"#ff3355","neutral":"#7a9cbf"}
-    out = ""
+    out   = ""
+    uid   = 0
     for n in items:
-        tag = n.get("tag","MARKET")
-        imp = n.get("impact","neutral")
-        tc  = tag_c.get(tag,"#00c8ff")
+        uid  += 1
+        tag   = n.get("tag","MARKET")
+        imp   = n.get("impact","neutral")
+        tc    = tag_c.get(tag,"#00c8ff")
+        bull  = n.get("bull","")
+        neut  = n.get("neutral","")
+        bear  = n.get("bear","")
+        has3  = bull or neut or bear
+        nid   = "nv" + str(uid)
+        # main headline row
         out += (
-            '<div style="padding:9px 0;border-bottom:1px solid #182236;font-size:12px;color:#7a9cbf;line-height:1.5">'
-            '<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;'
-            'margin-right:6px;background:' + tc + '22;color:' + tc + '">' + esc(tag) + '</span>'
-            + esc(n.get("headline","")) +
-            '<span style="color:' + imp_c.get(imp,"#7a9cbf") + ';margin-left:6px">' + imp_s.get(imp,"●") + '</span>'
-            + ('<span style="font-size:9px;color:#2a3d58;margin-left:8px">' + esc(n.get("time","")) + '</span>' if n.get("time") else "")
+            '<div style="padding:10px 0;border-bottom:1px solid #182236">'
+            # tag + headline row
+            '<div style="display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap">'
+            '<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;white-space:nowrap;'
+            'background:' + tc + '22;color:' + tc + '">' + esc(tag) + '</span>'
+            '<span style="font-size:12px;color:#d8eeff;line-height:1.5;flex:1">' + esc(n.get("headline","")) + '</span>'
+            '<span style="color:' + imp_c.get(imp,"#7a9cbf") + ';font-size:13px;font-weight:700">'
+            + imp_s.get(imp,"●") + '</span>'
+            + ('<span style="font-size:9px;color:#2a3d58;white-space:nowrap">'
+               + esc(n.get("time","")) + '</span>' if n.get("time") else "")
             + '</div>'
         )
+        # 3-view pills row
+        if has3:
+            out += (
+                '<div style="display:flex;gap:5px;margin-top:7px;flex-wrap:wrap">'
+            )
+            if bull:
+                out += (
+                    '<div style="flex:1;min-width:120px;background:rgba(0,240,136,0.06);border:1px solid rgba(0,240,136,0.2);'
+                    'border-radius:6px;padding:5px 8px">'
+                    '<div style="font-size:8px;font-weight:700;color:#00f088;letter-spacing:0.8px;margin-bottom:3px">▲ BULL</div>'
+                    '<div style="font-size:10px;color:#8abf9a;line-height:1.5">' + esc(bull) + '</div>'
+                    '</div>'
+                )
+            if neut:
+                out += (
+                    '<div style="flex:1;min-width:120px;background:rgba(255,214,0,0.06);border:1px solid rgba(255,214,0,0.2);'
+                    'border-radius:6px;padding:5px 8px">'
+                    '<div style="font-size:8px;font-weight:700;color:#ffd600;letter-spacing:0.8px;margin-bottom:3px">● NEUTRAL</div>'
+                    '<div style="font-size:10px;color:#bfb870;line-height:1.5">' + esc(neut) + '</div>'
+                    '</div>'
+                )
+            if bear:
+                out += (
+                    '<div style="flex:1;min-width:120px;background:rgba(255,51,85,0.06);border:1px solid rgba(255,51,85,0.2);'
+                    'border-radius:6px;padding:5px 8px">'
+                    '<div style="font-size:8px;font-weight:700;color:#ff3355;letter-spacing:0.8px;margin-bottom:3px">▼ BEAR</div>'
+                    '<div style="font-size:10px;color:#bf8a8a;line-height:1.5">' + esc(bear) + '</div>'
+                    '</div>'
+                )
+            out += '</div>'
+        out += '</div>'
     return out
 
 def pivot_cells(p):
@@ -526,6 +603,157 @@ table{width:100%;border-collapse:collapse}
 @media(max-width:500px){.g2,.g3,.g4{grid-template-columns:1fr}}
 """
 
+
+# ── LIVE DATA JAVASCRIPT VARIABLE ─────────────────────────────────────────────
+live_js_script = """<script>
+(function(){
+"use strict";
+const YF_QUOTE="https://query1.finance.yahoo.com/v7/finance/quote?symbols=";
+const CORS="https://corsproxy.io/?";
+function fmt(n,d=2){return n==null?"\u2014":Number(n).toLocaleString("en-IN",{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmtChg(n){if(n==null)return"\u2014";return(n>=0?"+":"")+fmt(n,2);}
+function fmtPct(n){if(n==null)return"\u2014";return(n>=0?"+":"")+fmt(n,2)+"%";}
+function col(n){return n>0?"#00f088":n<0?"#ff3355":"#7a9cbf";}
+function setEl(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function setHTML(id,v){const e=document.getElementById(id);if(e)e.innerHTML=v;}
+function setC(id,c){const e=document.getElementById(id);if(e)e.style.color=c;}
+
+function stamp(){
+  const n=new Date();
+  const ist=new Date(n.getTime()+(5.5*3600000)-n.getTimezoneOffset()*60000);
+  const p=x=>String(x).padStart(2,"0");
+  setEl("live-stamp","Updated "+p(ist.getHours())+":"+p(ist.getMinutes())+":"+p(ist.getSeconds())+" IST");
+}
+
+function market(){
+  const n=new Date(),ist=new Date(n.getTime()+5.5*3600000);
+  const h=ist.getUTCHours(),m=ist.getUTCMinutes(),d=ist.getUTCDay();
+  if(d===0||d===6)return false;
+  const t=h*60+m;return t>=9*15&&t<=15*30;
+}
+
+async function fetch_yf(syms){
+  const url=YF_QUOTE+syms+"&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketDayHigh,regularMarketDayLow,shortName,symbol";
+  try{const r=await fetch(url);if(!r.ok)throw 0;const d=await r.json();return d.quoteResponse.result||[];}
+  catch(e){
+    try{const r=await fetch(CORS+encodeURIComponent(url));const d=await r.json();return d.quoteResponse.result||[];}
+    catch(e2){return[];}
+  }
+}
+
+async function poll(){
+  stamp();
+  try{
+    const qs=await fetch_yf("%5ENSEI,%5ENSEBANK,%5EINDIAVIX");
+    if(!qs.length)return;
+    const nifty=qs.find(q=>q.symbol.includes("NSEI")&&!q.symbol.includes("BANK"))||qs[0];
+    const bank =qs.find(q=>q.symbol.includes("BANK"));
+    const vix  =qs.find(q=>q.symbol.includes("INDIAVIX"));
+    const c=col(nifty.regularMarketChange);
+    setEl("live-price", fmt(nifty.regularMarketPrice,2));
+    setEl("live-chg",   fmtChg(nifty.regularMarketChange)+" ("+fmtPct(nifty.regularMarketChangePercent)+")");
+    setEl("live-high",  fmt(nifty.regularMarketDayHigh,2));
+    setEl("live-low",   fmt(nifty.regularMarketDayLow,2));
+    setC("live-price",c); setC("live-chg",c);
+    if(vix){
+      const vc=vix.regularMarketPrice>16?"#ff3355":vix.regularMarketPrice>12?"#ffcc00":"#00f088";
+      setEl("live-vix",fmt(vix.regularMarketPrice,2)); setC("live-vix",vc);
+    }
+    // ticker strip
+    const parts=qs.map(q=>{
+      const qc=col(q.regularMarketChange);
+      return "<span style='margin-right:20px;white-space:nowrap'>"
+        +"<span style='color:#4a6a8a;font-size:9px'>"+( q.shortName||q.symbol)+"</span> "
+        +"<span style='color:"+qc+";font-weight:700'>"+fmt(q.regularMarketPrice,2)+"</span>"
+        +" <span style='color:"+qc+";font-size:10px'>"+fmtChg(q.regularMarketChange)+" ("+fmtPct(q.regularMarketChangePercent)+")</span>"
+        +"</span>";
+    });
+    setHTML("live-ticker",parts.join("<span style='color:#182236'>|</span>"));
+    const b=document.getElementById("live-badge");
+    if(b){b.style.display="inline-flex";b.textContent="● LIVE";b.style.color="#00f088";}
+  }catch(e){
+    const b=document.getElementById("live-badge");
+    if(b){b.style.color="#ffcc00";b.textContent="○ Delayed";}
+  }
+}
+
+function countdown(){
+  const sessions=[[8,0,"Morning Brief"],[9,15,"Market Open"],[11,15,"Mid-Morning"],[13,15,"Post-Lunch"],[15,15,"Pre-Close"]];
+  const n=new Date(),ist=new Date(n.getTime()+5.5*3600000);
+  const h=ist.getUTCHours(),m=ist.getUTCMinutes(),s=ist.getUTCSeconds();
+  const cur=h*3600+m*60+s;
+  let nxt=null,lbl="";
+  for(const[sh,sm,sl]of sessions){const t=sh*3600+sm*60;if(t>cur){nxt=t;lbl=sl;break;}}
+  if(!nxt){setEl("next-session","All sessions done for today");return;}
+  const d=nxt-cur,rh=Math.floor(d/3600),rm=Math.floor((d%3600)/60),rs=d%60;
+  const p=x=>String(x).padStart(2,"0");
+  setEl("next-session","Next: "+lbl+" in "+(rh>0?rh+"h ":"")+p(rm)+"m "+p(rs)+"s");
+}
+
+// Stale data warning
+function checkStale(){
+  const genTimeEl = document.getElementById("gen-time");
+  if(!genTimeEl) return;
+  const genTimeStr = genTimeEl.getAttribute("data-ts");
+  if(!genTimeStr) return;
+  const genTime = new Date(parseInt(genTimeStr)*1000);
+  const ageHours = (Date.now() - genTime.getTime()) / 3600000;
+  const bannerEl = document.getElementById("stale-banner");
+  if(bannerEl && ageHours > 2){
+    bannerEl.style.display = "block";
+    bannerEl.innerHTML = "⚠ Dashboard data is " + Math.floor(ageHours) + "h old — last GitHub Actions run may have failed. "
+      + "Live price is fetched directly below. "
+      + "<a href=\"https://github.com/Sameerxceed/nifty-morning-brief/actions\" target=\"_blank\" "
+      + "style=\"color:#00c8ff\">Check Actions log →</a>";
+  }
+}
+
+window.addEventListener("DOMContentLoaded",function(){
+  poll();
+  checkStale();
+  setInterval(function(){if(market())poll();else stamp();},60000);
+  setInterval(countdown,1000);
+  countdown();
+});
+})();
+</script>"""
+
+
+
+def perspectives_section(data):
+    """Render the 3-view analysis card on the dashboard."""
+    p = data.get("perspectives", {})
+    if not p or not p.get("key_event"):
+        return ""
+    bull  = esc(p.get("bull_view",""))
+    neut  = esc(p.get("neutral_view",""))
+    bear  = esc(p.get("bear_view",""))
+    event = esc(p.get("key_event",""))
+    return (
+        '<div class="sec">3-View Analysis &#x2014; Key Event</div>'
+        '<div style="background:#0b1220;border:1px solid #1e3050;border-radius:12px;padding:16px 20px;margin-bottom:16px">'
+        '<div style="font-size:10px;color:#2a3d58;font-weight:700;letter-spacing:1px;margin-bottom:4px">KEY EVENT</div>'
+        '<div style="font-size:14px;font-weight:700;color:#d8eeff;margin-bottom:16px">' + event + '</div>'
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">'
+        # Bull
+        '<div style="background:rgba(0,240,136,0.05);border:1px solid rgba(0,240,136,0.2);border-radius:10px;padding:14px">'
+        '<div style="font-size:9px;font-weight:700;color:#00f088;letter-spacing:1px;margin-bottom:8px">▲ BULL CASE</div>'
+        '<div style="font-size:12px;color:#7abf8a;line-height:1.7">' + bull + '</div>'
+        '</div>'
+        # Neutral
+        '<div style="background:rgba(255,214,0,0.05);border:1px solid rgba(255,214,0,0.2);border-radius:10px;padding:14px">'
+        '<div style="font-size:9px;font-weight:700;color:#ffd600;letter-spacing:1px;margin-bottom:8px">● NEUTRAL CASE</div>'
+        '<div style="font-size:12px;color:#bfb080;line-height:1.7">' + neut + '</div>'
+        '</div>'
+        # Bear
+        '<div style="background:rgba(255,51,85,0.05);border:1px solid rgba(255,51,85,0.2);border-radius:10px;padding:14px">'
+        '<div style="font-size:9px;font-weight:700;color:#ff3355;letter-spacing:1px;margin-bottom:8px">▼ BEAR CASE</div>'
+        '<div style="font-size:12px;color:#bf7a7a;line-height:1.7">' + bear + '</div>'
+        '</div>'
+        '</div>'
+        '</div>'
+    )
+
 html_parts = [
     '<!DOCTYPE html><html lang="en"><head>',
     '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">',
@@ -546,8 +774,17 @@ html_parts = [
     '<span style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:#00d4ff;'
     'font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px">' + esc(SESSION_LABELS.get(SESSION,"")) + '</span>',
     '<span style="font-size:10px;color:#7a9cbf;background:#0d1422;padding:4px 10px;border-radius:6px;'
-    'border:1px solid #182236">Updated ' + TIME + ' IST - ' + now_ist.strftime("%d %b %Y") + '</span>',
+    'border:1px solid #182236"><span id="live-stamp">Updated ' + TIME + ' IST</span> - ' + now_ist.strftime("%d %b %Y") + '</span>',
+    '<span id="live-badge" style="display:none;font-size:10px;font-weight:700;color:#00f088;'
+    'background:rgba(0,240,136,0.08);border:1px solid rgba(0,240,136,0.3);'
+    'padding:4px 10px;border-radius:6px">● LIVE</span>',
     '</div></div>',
+
+    # Stale-data banner (hidden by default, shown by JS if data > 2h old)
+    '<div id="stale-banner" style="display:none;background:#1a0a00;border-left:4px solid #ff8c00;'
+    'padding:10px 20px;font-size:12px;color:#ff8c00;line-height:1.5"></div>',
+    # Hidden gen-time element so JS can compute data age
+    '<span id="gen-time" data-ts="' + str(int(now_ist.timestamp())) + '" style="display:none"></span>',
 
     # HERO
     '<div class="hero"><div style="max-width:1100px;margin:0 auto;display:flex;'
@@ -555,11 +792,11 @@ html_parts = [
     '<div>',
     '<div style="font-size:10px;color:#2a3d58;font-weight:700;text-transform:uppercase;'
     'letter-spacing:1.5px;margin-bottom:8px">Nifty 50 - Live</div>',
-    '<div style="font-size:52px;font-weight:700;line-height:1;letter-spacing:-2px;color:' + nifty_c + '">' + esc(n.get("price","—")) + '</div>',
-    '<div style="font-size:18px;font-weight:700;margin-top:4px;color:' + nifty_c + '">' + esc(n.get("change","—")) + ' (' + esc(n.get("pct","—")) + ')</div>',
+    '<div id="live-price" style="font-size:52px;font-weight:700;line-height:1;letter-spacing:-2px;color:' + nifty_c + '">' + esc(n.get("price","—")) + '</div>',
+    '<div id="live-chg" style="font-size:18px;font-weight:700;margin-top:4px;color:' + nifty_c + '">' + esc(n.get("change","—")) + ' (' + esc(n.get("pct","—")) + ')</div>',
     '<div style="display:flex;gap:16px;margin-top:8px">',
-    '<span style="font-size:11px;color:#7a9cbf">H: <strong style="color:#d8eeff">' + esc(n.get("high","—")) + '</strong></span>',
-    '<span style="font-size:11px;color:#7a9cbf">L: <strong style="color:#d8eeff">' + esc(n.get("low","—")) + '</strong></span>',
+    '<span style="font-size:11px;color:#7a9cbf">H: <strong id="live-high" style="color:#d8eeff">' + esc(n.get("high","—")) + '</strong></span>',
+    '<span style="font-size:11px;color:#7a9cbf">L: <strong id="live-low" style="color:#d8eeff">' + esc(n.get("low","—")) + '</strong></span>',
     '<span style="font-size:11px;color:#7a9cbf">VIX: <strong style="color:' + sig_color(data["vix"].get("level","")) + '">' + esc(data["vix"].get("value","—")) + '</strong></span>',
     '</div></div>',
     '<div style="text-align:right">',
@@ -573,6 +810,15 @@ html_parts = [
     '<div style="display:flex;justify-content:space-between;font-size:8px;color:#2a3d58;margin-top:3px"><span>BEAR</span><span>NEUTRAL</span><span>BULL</span></div>',
     '</div></div>',
     '</div></div>',
+
+    # Live ticker strip + next session countdown
+    '<div style="background:#070d17;border-bottom:1px solid #0d1422;padding:8px 20px;'    'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;overflow:hidden">',
+    '<div id="live-ticker" style="font-size:11px;color:#4a6a8a;overflow:hidden;white-space:nowrap">',
+    '<span style="color:#4a6a8a">Fetching live data...</span>',
+    '</div>',
+    '<div id="next-session" style="font-size:10px;color:#4a6a8a;white-space:nowrap;'    'background:#0d1422;padding:4px 10px;border-radius:6px;border:1px solid #182236">',
+    'Calculating...</div>',
+    '</div>',
 
     '<div class="main">',
     intraday_section,
@@ -637,6 +883,8 @@ html_parts = [
     news_items(data.get("news",[])),
     '</div></div>',
 
+    perspectives_section(data),
+
     '<div class="sec">Session Timeline &amp; Morning Brief</div>',
     '<div class="g2">',
     '<div class="card"><div style="font-size:9px;color:#2a3d58;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px">Todays Sessions</div>',
@@ -650,6 +898,7 @@ html_parts = [
     'Nifty Live Dashboard - Auto-generated at ' + TIME + ' IST - Powered by Gemini AI + Google Search<br>',
     '<span style="margin-top:4px;display:block">For informational purposes only. Not financial advice.</span>',
     '</div>',
+    live_js_script,
     '</div></body></html>'
 ]
 
