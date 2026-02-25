@@ -2,16 +2,13 @@ name: Nifty Live Dashboard
 
 on:
   schedule:
-    # All times in UTC (IST = UTC + 5:30)
     - cron: '30 2 * * 1-5'   # 08:00 IST — Morning Brief
     - cron: '45 3 * * 1-5'   # 09:15 IST — Market Open
     - cron: '45 5 * * 1-5'   # 11:15 IST — Mid-Morning
     - cron: '45 7 * * 1-5'   # 13:15 IST — Post-Lunch
     - cron: '45 9 * * 1-5'   # 15:15 IST — Pre-Close
+  workflow_dispatch:
 
-  workflow_dispatch:           # Manual trigger anytime from GitHub UI
-
-# Allow GitHub Actions to push to Pages
 permissions:
   contents: write
   pages: write
@@ -20,7 +17,7 @@ permissions:
 jobs:
   generate-and-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35       # ← was 25, morning run needs ~28min with parallel fetches
 
     steps:
       - name: Checkout repo
@@ -32,18 +29,20 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install pytz
+        run: pip install pytz Pillow requests cryptography
 
-      - name: Restore previous data.json (if exists)
+      - name: Restore previous data.json (carry-forward from last run)
         run: |
           git fetch origin gh-pages 2>/dev/null || true
-          git checkout origin/gh-pages -- data.json 2>/dev/null || echo "No previous data.json found, starting fresh"
+          git checkout origin/gh-pages -- data.json 2>/dev/null || echo "No previous data.json yet"
 
+      # ── STEP 1: Generate dashboard ─────────────────────────────────────────
       - name: Generate dashboard
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python generate.py
 
+      # ── STEP 2: Deploy to GitHub Pages ─────────────────────────────────────
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
@@ -53,4 +52,36 @@ jobs:
           include_files: |
             index.html
             data.json
-          commit_message: "🔄 Dashboard updated — ${{ github.run_id }}"
+          commit_message: "Dashboard updated [${{ github.run_number }}]"
+
+      # ── STEP 3: Notify you (Telegram + Email) ──────────────────────────────
+      - name: Notify owner
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
+          GMAIL_USER:         ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_EMAIL:       ${{ secrets.NOTIFY_EMAIL }}
+        run: python notify.py
+        continue-on-error: true
+
+      # ── STEP 4: Post cards to Instagram + Facebook ─────────────────────────
+      - name: Post to Instagram and Facebook
+        env:
+          META_ACCESS_TOKEN:    ${{ secrets.META_ACCESS_TOKEN }}
+          INSTAGRAM_ACCOUNT_ID: ${{ secrets.INSTAGRAM_ACCOUNT_ID }}
+          FACEBOOK_PAGE_ID:     ${{ secrets.FACEBOOK_PAGE_ID }}
+          IMGBB_API_KEY:        ${{ secrets.IMGBB_API_KEY }}
+        run: python post_to_instagram.py
+        continue-on-error: true
+
+      # ── STEP 5: Broadcast to subscribers ───────────────────────────────────
+      - name: Broadcast to subscribers
+        env:
+          GMAIL_USER:                  ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD:          ${{ secrets.GMAIL_APP_PASSWORD }}
+          TELEGRAM_BOT_TOKEN:          ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          SHEET_ID:                    ${{ secrets.SHEET_ID }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python broadcast.py
+        continue-on-error: true
