@@ -360,7 +360,7 @@
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const API_URL = "https://nifty-api.vercel.app/api/quotes";
-const GEMINI_KEY = "AIzaSyBAX1qTDFJYum1xvatM6Wl9H3f2DWBkclM";
+const GEMINI_KEY = "AIzaSyBAX1qTDFJYum1xvatM6W19H3f2DWBkc1M";
 
 // Fallback proxies (used only if Vercel API is unavailable)
 const PROXY1 = "https://api.allorigins.win/get?url=";
@@ -614,7 +614,7 @@ function updateMarketData(quotes){
 // ── GEMINI AI CALLS ───────────────────────────────────────────────────────────
 async function callGemini(prompt, json=false){
   if(!GEMINI_KEY) return null;
-  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_KEY}`;
   const finalPrompt = prompt + (json ? "\n\nReturn ONLY valid JSON. No markdown, no backticks, no explanation. Raw JSON only." : "");
   const body={
     contents:[{parts:[{text:finalPrompt}]}],
