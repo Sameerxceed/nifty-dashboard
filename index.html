@@ -360,7 +360,7 @@
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 // IMPORTANT: Replace with your actual Gemini API key
-const GEMINI_KEY = "AIzaSyBAX1qTDFJYum1xvatM6Wl9H3f2DWBkclM";
+const GEMINI_KEY = "YOUR_GEMINI_API_KEY";
 
 // ── YOUR VERCEL API ──────────────────────────────────────────────────────────
 // After deploying to Vercel, replace this URL with your actual deployment URL
@@ -618,11 +618,10 @@ function updateMarketData(quotes){
 // ── GEMINI AI CALLS ───────────────────────────────────────────────────────────
 async function callGemini(prompt, json=false){
   if(!GEMINI_KEY||GEMINI_KEY==="YOUR_GEMINI_API_KEY") return null;
-  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
   const body={
     contents:[{parts:[{text:prompt+(json?"\n\nReturn ONLY valid JSON, no markdown, no explanation.":"")}]}],
-    tools:[{googleSearch:{}}],
-    generationConfig:{temperature:0.2,maxOutputTokens:1500}
+    generationConfig:{temperature:0.3,maxOutputTokens:1500}
   };
   try{
     const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
