@@ -360,7 +360,7 @@
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const API_URL = "https://nifty-api.vercel.app/api/quotes";
-const GEMINI_KEY = "AIzaSyDd66gGoGG8zJ-7-g21BbaFg5RLIczvYUw";
+const GEMINI_KEY = "AIzaSyBAX1qTDFJYum1xvatM6W19H3f2DWBkc1M";
 
 // Fallback proxies (used only if Vercel API is unavailable)
 const PROXY1 = "https://api.allorigins.win/get?url=";
@@ -639,76 +639,61 @@ async function callGemini(prompt, json=false){
   }
 }
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 async function fetchAIData(){
   const now = new Date();
   const today = now.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",weekday:"long",day:"2-digit",month:"long",year:"numeric"});
   const time = now.toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hour12:false});
   console.log("Fetching AI data for:",today,time);
 
-  // Run all AI fetches in parallel
-  const [news, fiidii, pivots, oi, sentiment, perspectives, brief] = await Promise.allSettled([
+  // Call sequentially with 2s delay to avoid rate limiting (free tier = 15 req/min)
+  // Batch 1: Most important - pivots + sentiment + perspectives (one combined call)
+  const combined = await callGemini(
+    `You are a Nifty 50 market analyst. Today is ${today} ${time} IST. Answer ALL of the following in one JSON response:
+1. Nifty pivot levels based on yesterday's OHLC
+2. Top 3 breaking news affecting Nifty today with bull/neutral/bear views
+3. FII DII cash market flows today
+4. Options max pain and PCR
+5. Overall market sentiment score 0-100
+6. The single most important event today with 3 perspectives
+7. A brief 100-word market summary
 
-    // NEWS with 3 views
-    callGemini(
-      `Search latest 4 breaking news affecting Indian Nifty 50 market today ${today} ${time} IST. For each provide bull/neutral/bear interpretation. `+
-      `Return JSON array: [{"tag":"MARKET/MACRO/GEO/SECTOR","headline":"under 12 words","impact":"positive/negative/neutral","time":"HH:MM","bull":"1 sentence bullish take with Nifty level","neutral":"1 sentence neutral take","bear":"1 sentence bearish risk with level"}]`,
-      true
-    ),
+Return this exact JSON structure:
+{
+  "pivots": {"prev_high":"","prev_low":"","prev_close":"","r3":"","r2":"","r1":"","pp":"","s1":"","s2":"","s3":""},
+  "news": [{"tag":"MARKET","headline":"","impact":"positive","time":"","bull":"","neutral":"","bear":""}],
+  "fiidii": {"fii":{"buy":"","sell":"","net":""},"dii":{"buy":"","sell":"","net":""},"signal":""},
+  "oi": {"max_pain":"","pcr":"","top_ce_strike":"","top_pe_strike":""},
+  "sentiment": {"score":50,"label":"Neutral","summary":""},
+  "perspectives": {"key_event":"","bull_view":"","neutral_view":"","bear_view":""},
+  "brief": ""
+}`, true);
 
-    // FII DII
-    callGemini(
-      `Search FII DII cash market activity NSE India today ${today}. `+
-      `Return JSON: {"fii":{"buy":"XXXX","sell":"XXXX","net":"+/-XXXX"},"dii":{"buy":"XXXX","sell":"XXXX","net":"+/-XXXX"},"signal":"both_buying/both_selling/mixed"}`,
-      true
-    ),
+  const d = parseJSON(combined);
+  if(d){
+    console.log("Gemini combined response OK");
+    renderNews(d.news);
+    renderFIIDII(d.fiidii);
+    renderPivots(d.pivots);
+    renderOI(d.oi);
+    renderSentiment(d.sentiment);
+    renderPerspectives(d.perspectives);
+    renderBrief(d.brief);
+  } else {
+    console.warn("Combined parse failed, trying individual calls...");
+    // Fallback: individual calls with delays
+    const pivots = await callGemini(`Nifty 50 pivot levels ${today}. Return JSON: {"r3":"","r2":"","r1":"","pp":"","s1":"","s2":"","s3":"","prev_high":"","prev_low":"","prev_close":""}`, true);
+    renderPivots(parseJSON(pivots));
+    await sleep(3000);
 
-    // Pivots
-    callGemini(
-      `Search Nifty 50 pivot points today ${today} based on yesterday OHLC. `+
-      `Return JSON: {"prev_high":"XXXXX","prev_low":"XXXXX","prev_close":"XXXXX","r3":"XXXXX","r2":"XXXXX","r1":"XXXXX","pp":"XXXXX","s1":"XXXXX","s2":"XXXXX","s3":"XXXXX"}`,
-      true
-    ),
+    const sentiment = await callGemini(`Nifty market sentiment score today ${today}. Return JSON: {"score":50,"label":"Neutral","summary":"one sentence"}`, true);
+    renderSentiment(parseJSON(sentiment));
+    await sleep(3000);
 
-    // OI
-    callGemini(
-      `Search Nifty 50 options max pain PCR open interest today ${today}. `+
-      `Return JSON: {"max_pain":"XXXXX","pcr":"X.XX","pcr_signal":"bullish/bearish/neutral","top_ce_strike":"XXXXX","top_pe_strike":"XXXXX"}`,
-      true
-    ),
-
-    // Sentiment
-    callGemini(
-      `Rate overall Nifty 50 market sentiment right now ${today} ${time} IST based on global cues, FII activity, Gift Nifty, VIX, crude. `+
-      `Return JSON: {"score":50,"label":"Bullish/Neutral/Bearish","summary":"2 sentences max"}`,
-      true
-    ),
-
-    // 3-view perspectives
-    callGemini(
-      `Identify the single most important market event or data point for Nifty today ${today}. Write 3 perspectives. `+
-      `Return JSON: {"key_event":"headline under 12 words","bull_view":"2 sentences bullish take with price target","neutral_view":"2 sentences neutral take with range","bear_view":"2 sentences bearish risk with support levels"}`,
-      true
-    ),
-
-    // Brief (prose)
-    callGemini(
-      `Write a concise Nifty 50 market brief for ${today} ${time} IST. `+
-      `Include: Opening gap/trend, Key levels to watch, FII sentiment, Global cues impact, Trading verdict. `+
-      `Format with section headers in CAPS followed by colon. Under 200 words. Be specific with numbers.`,
-      false
-    ),
-  ]);
-
-  const get = r => r.status==="fulfilled"?r.value:null;
-
-  // Parse and render each
-  renderNews(parseJSON(get(news)));
-  renderFIIDII(parseJSON(get(fiidii)));
-  renderPivots(parseJSON(get(pivots)));
-  renderOI(parseJSON(get(oi)));
-  renderSentiment(parseJSON(get(sentiment)));
-  renderPerspectives(parseJSON(get(perspectives)));
-  renderBrief(get(brief));
+    const brief = await callGemini(`Brief 80-word Nifty market summary for ${today} ${time} IST. Key levels, FII trend, global cues, verdict.`, false);
+    renderBrief(brief);
+  }
 }
 
 function parseJSON(raw){
