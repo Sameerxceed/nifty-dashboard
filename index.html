@@ -360,10 +360,15 @@
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 // IMPORTANT: Replace with your actual Gemini API key
-const GEMINI_KEY = "AIzaSyBAX1qTDFJYum1xvatM6Wl9H3f2DWBkclM";
+const GEMINI_KEY = "YOUR_GEMINI_API_KEY";
 
+// ── YOUR VERCEL API ──────────────────────────────────────────────────────────
+// After deploying to Vercel, replace this URL with your actual deployment URL
+// e.g. "https://nifty-api.vercel.app/api/quotes"
+const API_URL = "https://nifty-api.vercel.app/api/quotes";
+
+// Fallback proxies (used only if Vercel API is unavailable)
 const PROXY1 = "https://api.allorigins.win/get?url=";
-const PROXY2 = "https://corsproxy.io/?";
 const YF     = "https://query1.finance.yahoo.com/v7/finance/quote?symbols=";
 
 // Symbols
@@ -395,8 +400,10 @@ function setC(id,c){ const e=$(id); if(e) e.style.color=c; }
 
 // ── SESSION LOGIC ─────────────────────────────────────────────────────────────
 function getIST(){
+  // Correct IST: always UTC+5:30, regardless of local timezone
   const n=new Date();
-  return new Date(n.getTime() + 5.5*3600000 - n.getTimezoneOffset()*60000);
+  const utc=n.getTime() + (n.getTimezoneOffset()*60000);
+  return new Date(utc + (5.5*3600000));
 }
 function getSession(){
   const ist=getIST(), h=ist.getUTCHours(), m=ist.getUTCMinutes(), t=h*60+m;
@@ -435,157 +442,110 @@ function countdown(){
 
 // ── FETCH WITH PROXY FALLBACK ─────────────────────────────────────────────────
 async function fetchYF(symbols){
-  const url = YF+symbols+"&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketDayHigh,regularMarketDayLow,shortName,symbol";
-  
-  const proxies = [
-    // allorigins - most reliable free CORS proxy
-    async () => {
-      const r = await fetch("https://api.allorigins.win/get?url="+encodeURIComponent(url), {signal:AbortSignal.timeout(10000)});
-      if(!r.ok) throw 0;
-      const d = await r.json();
-      return JSON.parse(d.contents).quoteResponse.result||[];
-    },
-    // corsproxy.io
-    async () => {
-      const r = await fetch("https://corsproxy.io/?"+encodeURIComponent(url), {signal:AbortSignal.timeout(10000)});
-      if(!r.ok) throw 0;
-      const d = await r.json();
-      return d.quoteResponse.result||[];
-    },
-    // thingproxy
-    async () => {
-      const r = await fetch("https://thingproxy.freeboard.io/fetch/"+url, {signal:AbortSignal.timeout(10000)});
-      if(!r.ok) throw 0;
-      const d = await r.json();
-      return d.quoteResponse.result||[];
-    },
-    // cors-anywhere via heroku
-    async () => {
-      const r = await fetch("https://cors-anywhere.herokuapp.com/"+url, {headers:{"X-Requested-With":"XMLHttpRequest"},signal:AbortSignal.timeout(10000)});
-      if(!r.ok) throw 0;
-      const d = await r.json();
-      return d.quoteResponse.result||[];
-    },
-    // direct (sometimes works)
-    async () => {
-      const r = await fetch(url, {signal:AbortSignal.timeout(10000)});
-      if(!r.ok) throw 0;
-      const d = await r.json();
-      return d.quoteResponse.result||[];
-    },
-    // Yahoo Finance v8 API via allorigins (different endpoint)
-    async () => {
-      const syms = symbols.split(",");
-      const results = [];
-      for(const sym of syms.slice(0,3)){
-        try{
-          const yurl = "https://query2.finance.yahoo.com/v8/finance/chart/"+sym+"?interval=1d&range=1d";
-          const r = await fetch("https://api.allorigins.win/get?url="+encodeURIComponent(yurl), {signal:AbortSignal.timeout(8000)});
-          if(!r.ok) continue;
-          const d = await r.json();
-          const meta = JSON.parse(d.contents).chart.result[0].meta;
-          results.push({
-            symbol: sym.replace("%5E","^").replace("%3D","="),
-            regularMarketPrice: meta.regularMarketPrice,
-            regularMarketChange: meta.regularMarketPrice - meta.chartPreviousClose,
-            regularMarketChangePercent: ((meta.regularMarketPrice - meta.chartPreviousClose)/meta.chartPreviousClose)*100,
-            regularMarketDayHigh: meta.regularMarketDayHigh||meta.regularMarketPrice,
-            regularMarketDayLow: meta.regularMarketDayLow||meta.regularMarketPrice,
-          });
-        }catch(e){}
-      }
-      if(results.length>0) return results;
-      throw 0;
-    }
-  ];
-
-  for(const proxy of proxies){
-    try{
-      const result = await proxy();
-      if(result && result.length > 0) return result;
-    }catch(e){}
-  }
-  return [];
+  // This is kept as fallback only - main fetch uses fetchAllQuotes()
+  try {
+    const url = YF + symbols + "&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketDayHigh,regularMarketDayLow,shortName,symbol";
+    const r = await fetch(PROXY1 + encodeURIComponent(url), {signal: AbortSignal.timeout(8000)});
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    return JSON.parse(d.contents).quoteResponse.result || [];
+  } catch(e) { return []; }
 }
 
 // ── UPDATE HERO + TICKER ──────────────────────────────────────────────────────
 function updateMarketData(quotes){
-  // Flexible symbol matcher - handles ^ prefix variations
-  const find = (...keys) => quotes.find(q=>{
-    if(!q||!q.symbol) return false;
-    const s=q.symbol.toUpperCase().replace("^","").replace("=X","").replace("=F","");
-    return keys.some(k=>s.includes(k.toUpperCase().replace("^","").replace("=","").replace("%5E","").replace("%3D","")));
-  });
-  const nifty  = find("NSEI") || (quotes.find(q=>q.symbol&&!q.symbol.includes("BANK")&&q.symbol.includes("NSEI")));
-  const bank   = find("NSEBANK","ENSEBANK");
-  const vix    = find("INDIAVIX");
-  const inr    = find("USDINR","INR");
-  const crude  = find("CL","CRUDE","WTI");
-  const dow    = find("DJI","DOW");
-  const nas    = find("IXIC","NASDAQ","NAS");
-  const nik    = find("N225","NIKKEI","NIK");
-  const hsi    = find("HSI","HANGSENG");
-  const ftse   = find("FTSE");
-  const sgx    = find("NSESGX","SGX");
+  // Direct symbol matching from API response
+  const bySymbol = sym => quotes.find(q=>q.symbol===sym||q.symbol===sym.replace("^","%5E").replace("=","="));
+  const nifty  = bySymbol("^NSEI")    || quotes.find(q=>q.symbol&&q.symbol.includes("NSEI")&&!q.symbol.includes("BANK"));
+  const bank   = bySymbol("^NSEBANK") || quotes.find(q=>q.symbol&&q.symbol.includes("NSEBANK"));
+  const vix    = bySymbol("^INDIAVIX")|| quotes.find(q=>q.symbol&&q.symbol.includes("INDIAVIX"));
+  const inr    = bySymbol("USDINR=X") || quotes.find(q=>q.symbol&&q.symbol.includes("USDINR"));
+  const crude  = bySymbol("CL=F")     || quotes.find(q=>q.symbol&&(q.symbol==="CL=F"||q.symbol.includes("CL%3DF")));
+  const gold   = bySymbol("GC=F")     || quotes.find(q=>q.symbol&&q.symbol.includes("GC"));
+  const dow    = bySymbol("^DJI")     || quotes.find(q=>q.symbol&&q.symbol.includes("DJI"));
+  const nas    = bySymbol("^IXIC")    || quotes.find(q=>q.symbol&&q.symbol.includes("IXIC"));
+  const nik    = bySymbol("^N225")    || quotes.find(q=>q.symbol&&q.symbol.includes("N225"));
+  const hsi    = bySymbol("^HSI")     || quotes.find(q=>q.symbol&&q.symbol.includes("HSI"));
+  const ftse   = bySymbol("^FTSE")    || quotes.find(q=>q.symbol&&q.symbol.includes("FTSE"));
+  const sgx    = null; // SGX not in API currently
+
+  // Helper to get value from either API format (normalized or raw Yahoo)
+  const gp  = q => q.price || q.regularMarketPrice;
+  const gc  = q => q.change || q.regularMarketChange;
+  const gcp = q => q.changePct || q.regularMarketChangePercent;
+  const gh  = q => q.high || q.regularMarketDayHigh;
+  const gl  = q => q.low  || q.regularMarketDayLow;
 
   if(nifty){
-    const c=col(nifty.regularMarketChange);
-    set("nifty-price", fmt(nifty.regularMarketPrice,2));
-    set("nifty-change", fmtC(nifty.regularMarketChange)+" ("+fmtP(nifty.regularMarketChangePercent)+")");
-    set("nifty-high", fmt(nifty.regularMarketDayHigh,2));
-    set("nifty-low",  fmt(nifty.regularMarketDayLow,2));
+    const c=col(gc(nifty));
+    set("nifty-price", fmt(gp(nifty),2));
+    set("nifty-change", fmtC(gc(nifty))+" ("+fmtP(gcp(nifty))+")");
+    set("nifty-high", fmt(gh(nifty),2));
+    set("nifty-low",  fmt(gl(nifty),2));
     setC("nifty-price",c); setC("nifty-change",c);
   }
   if(bank){
-    set("bank-val", fmt(bank.regularMarketPrice,2));
-    setC("bank-val", col(bank.regularMarketChange));
+    set("bank-val", fmt(gp(bank),2));
+    setC("bank-val", col(gc(bank)));
   }
   if(vix){
-    const vc=vix.regularMarketPrice>16?"var(--red)":vix.regularMarketPrice>12?"var(--yellow)":"var(--green)";
-    set("vix-val", fmt(vix.regularMarketPrice,2)); setC("vix-val",vc);
-    set("vix-card-val", fmt(vix.regularMarketPrice,2)); setC("vix-card-val",vc);
-    set("vix-sub","Change: "+fmtC(vix.regularMarketChange));
-    const lvl = vix.regularMarketPrice>16?"ELEVATED":vix.regularMarketPrice>12?"MODERATE":"LOW";
-    const sc  = vix.regularMarketPrice>16?"sig-dn":vix.regularMarketPrice>12?"sig-nt":"sig-up";
+    const vp=gp(vix);
+    const vc=vp>16?"var(--red)":vp>12?"var(--yellow)":"var(--green)";
+    set("vix-val", fmt(vp,2)); setC("vix-val",vc);
+    set("vix-card-val", fmt(vp,2)); setC("vix-card-val",vc);
+    set("vix-sub","Change: "+fmtC(gc(vix)));
+    const lvl = vp>16?"ELEVATED":vp>12?"MODERATE":"LOW";
+    const sc  = vp>16?"sig-dn":vp>12?"sig-nt":"sig-up";
     const vs=$("vix-sig"); if(vs){vs.textContent=lvl;vs.className="signal "+sc;}
   }
   if(inr){
-    set("inr-val","₹"+fmt(inr.regularMarketPrice,2));
-    set("inr-sub","Change: "+fmtC(inr.regularMarketChange));
-    const s=inr.regularMarketChange>0?"RUPEE WEAK":"RUPEE STRONG";
-    const sc=inr.regularMarketChange>0?"sig-dn":"sig-up";
+    set("inr-val","₹"+fmt(inr.regularMarketPrice||inr.price,2));
+    const inrChg = inr.regularMarketChange||inr.change||0;
+    set("inr-sub","Change: "+fmtC(inrChg));
+    const s=inrChg>0?"RUPEE WEAK":"RUPEE STRONG";
+    const sc=inrChg>0?"sig-dn":"sig-up";
     const el=$("inr-sig"); if(el){el.textContent=s;el.className="signal "+sc;}
   }
   if(crude){
-    set("crude-val","$"+fmt(crude.regularMarketPrice,2));
-    set("crude-sub",fmtC(crude.regularMarketChange)+" ("+fmtP(crude.regularMarketChangePercent)+")");
-    const sc=crude.regularMarketChange>0?"sig-dn":"sig-up";
-    const s=crude.regularMarketChange>0?"BULLISH CRUDE":"BEARISH CRUDE";
+    const cp=crude.regularMarketPrice||crude.price;
+    const cc=crude.regularMarketChange||crude.change||0;
+    const cpct=crude.regularMarketChangePercent||crude.changePct||0;
+    set("crude-val","$"+fmt(cp,2));
+    set("crude-sub",fmtC(cc)+" ("+fmtP(cpct)+")");
+    const sc=cc>0?"sig-dn":"sig-up";
+    const s=cc>0?"BULLISH CRUDE":"BEARISH CRUDE";
     const el=$("crude-sig"); if(el){el.textContent=s;el.className="signal "+sc;}
   }
 
   // Global table
-  const globals=[
-    ["dow","Dow Jones",dow],["nas","Nasdaq",nas],["nik","Nikkei 225",nik],
-    ["hsi","Hang Seng",hsi],["ftse","FTSE 100",ftse],["sgx","SGX Nifty",sgx]
+  // Global markets
+  const globalMap = [
+    ["dow", dow], ["nas", nas], ["nik", nik], ["hsi", hsi], ["ftse", ftse]
   ];
-  for(const[pfx,name,q]of globals){
+  for(const[pfx,q] of globalMap){
     if(!q) continue;
-    const c=col(q.regularMarketChange);
-    set(pfx+"-val",fmt(q.regularMarketPrice,2));
-    const ce=$(pfx+"-chg"); if(ce){ce.textContent=fmtC(q.regularMarketChange)+" ("+fmtP(q.regularMarketChangePercent)+")";ce.style.color=c;}
+    const c=col(gc(q));
+    set(pfx+"-val", fmt(gp(q),2));
+    const ce=$(pfx+"-chg");
+    if(ce){ce.textContent=fmtC(gc(q))+" ("+fmtP(gcp(q))+")";ce.style.color=c;}
   }
 
   // Ticker strip
-  const tickerData=[nifty,bank,vix,inr,crude,dow,nas].filter(Boolean);
-  const tickerNames={"NSEI":"Nifty 50","NSEBANK":"Bank Nifty","INDIAVIX":"India VIX","USDINR=X":"USD/INR","CL=F":"Crude WTI","DJI":"Dow Jones","IXIC":"Nasdaq"};
+  const tickerData=[
+    {q:nifty, name:"Nifty 50"},
+    {q:bank,  name:"Bank Nifty"},
+    {q:vix,   name:"India VIX"},
+    {q:inr,   name:"USD/INR"},
+    {q:crude, name:"Crude WTI"},
+    {q:gold,  name:"Gold"},
+    {q:dow,   name:"Dow"},
+    {q:nas,   name:"Nasdaq"},
+  ].filter(x=>x.q);
   const ti=$("ticker-items");
   if(ti){
-    ti.innerHTML=tickerData.map(q=>{
-      const sym=q.symbol||"";
-      const name=Object.entries(tickerNames).find(([k])=>sym.includes(k.replace("=","").replace("^","")))?.[1]||sym;
-      const c=col(q.regularMarketChange);
-      return `<div class="ticker-item"><span class="ticker-name">${name}</span><span class="ticker-val" style="color:${c}">${fmt(q.regularMarketPrice,2)}</span><span class="ticker-chg" style="color:${c}">&nbsp;${fmtC(q.regularMarketChange)}&nbsp;(${fmtP(q.regularMarketChangePercent)})</span></div>`;
+    ti.innerHTML=tickerData.map(({q,name})=>{
+      const c=col(gc(q));
+      return `<div class="ticker-item"><span class="ticker-name">${name}</span><span class="ticker-val" style="color:${c}">${fmt(gp(q),2)}</span><span class="ticker-chg" style="color:${c}">&nbsp;${fmtC(gc(q))}&nbsp;(${fmtP(gcp(q))})</span></div>`;
     }).join('<span style="color:var(--border)">|</span>');
   }
 }
@@ -816,22 +776,8 @@ async function poll(){
   if(badge){badge.textContent="⟳ Fetching";badge.className="badge badge-loading";}
 
   try{
-    // Fetch in 3 small batches — proxies fail on large symbol lists
-    const batch1 = "%5ENSEI,%5ENSEBANK,%5EINDIAVIX";           // Nifty, BankNifty, VIX
-    const batch2 = "USDINR%3DX,CL%3DF,GC%3DF";                // INR, Crude, Gold
-    const batch3 = "%5EDJI,%5EIXIC,%5EN225,%5EHSI,%5EFTSE";   // Global markets
-
-    const [q1, q2, q3] = await Promise.allSettled([
-      fetchYF(batch1),
-      fetchYF(batch2),
-      fetchYF(batch3),
-    ]);
-
-    const quotes = [
-      ...(q1.status==="fulfilled"?q1.value:[]),
-      ...(q2.status==="fulfilled"?q2.value:[]),
-      ...(q3.status==="fulfilled"?q3.value:[]),
-    ];
+    // Single API call gets all quotes at once (fast + reliable)
+    const quotes = await fetchAllQuotes();
 
     if(quotes.length>0){
       updateMarketData(quotes);
