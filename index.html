@@ -360,7 +360,7 @@
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 // IMPORTANT: Replace with your actual Gemini API key
-const GEMINI_KEY = "AIzaSyBAX1qTDFJYum1xvatM6Wl9H3f2DWBkclM";
+const GEMINI_KEY = "YOUR_GEMINI_API_KEY";
 
 const PROXY1 = "https://api.allorigins.win/get?url=";
 const PROXY2 = "https://corsproxy.io/?";
@@ -436,28 +436,75 @@ function countdown(){
 // ── FETCH WITH PROXY FALLBACK ─────────────────────────────────────────────────
 async function fetchYF(symbols){
   const url = YF+symbols+"&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketDayHigh,regularMarketDayLow,shortName,symbol";
-  // Try proxy 1 (allorigins)
-  try {
-    const r = await fetch(PROXY1+encodeURIComponent(url), {signal:AbortSignal.timeout(8000)});
-    if(!r.ok) throw 0;
-    const d = await r.json();
-    const inner = JSON.parse(d.contents);
-    return inner.quoteResponse.result||[];
-  } catch(e){}
-  // Try proxy 2 (corsproxy)
-  try {
-    const r = await fetch(PROXY2+encodeURIComponent(url), {signal:AbortSignal.timeout(8000)});
-    if(!r.ok) throw 0;
-    const d = await r.json();
-    return d.quoteResponse.result||[];
-  } catch(e){}
-  // Try direct (works when CORS is relaxed)
-  try {
-    const r = await fetch(url, {signal:AbortSignal.timeout(8000)});
-    if(!r.ok) throw 0;
-    const d = await r.json();
-    return d.quoteResponse.result||[];
-  } catch(e){}
+  
+  const proxies = [
+    // allorigins - most reliable free CORS proxy
+    async () => {
+      const r = await fetch("https://api.allorigins.win/get?url="+encodeURIComponent(url), {signal:AbortSignal.timeout(10000)});
+      if(!r.ok) throw 0;
+      const d = await r.json();
+      return JSON.parse(d.contents).quoteResponse.result||[];
+    },
+    // corsproxy.io
+    async () => {
+      const r = await fetch("https://corsproxy.io/?"+encodeURIComponent(url), {signal:AbortSignal.timeout(10000)});
+      if(!r.ok) throw 0;
+      const d = await r.json();
+      return d.quoteResponse.result||[];
+    },
+    // thingproxy
+    async () => {
+      const r = await fetch("https://thingproxy.freeboard.io/fetch/"+url, {signal:AbortSignal.timeout(10000)});
+      if(!r.ok) throw 0;
+      const d = await r.json();
+      return d.quoteResponse.result||[];
+    },
+    // cors-anywhere via heroku
+    async () => {
+      const r = await fetch("https://cors-anywhere.herokuapp.com/"+url, {headers:{"X-Requested-With":"XMLHttpRequest"},signal:AbortSignal.timeout(10000)});
+      if(!r.ok) throw 0;
+      const d = await r.json();
+      return d.quoteResponse.result||[];
+    },
+    // direct (sometimes works)
+    async () => {
+      const r = await fetch(url, {signal:AbortSignal.timeout(10000)});
+      if(!r.ok) throw 0;
+      const d = await r.json();
+      return d.quoteResponse.result||[];
+    },
+    // Yahoo Finance v8 API via allorigins (different endpoint)
+    async () => {
+      const syms = symbols.split(",");
+      const results = [];
+      for(const sym of syms.slice(0,3)){
+        try{
+          const yurl = "https://query2.finance.yahoo.com/v8/finance/chart/"+sym+"?interval=1d&range=1d";
+          const r = await fetch("https://api.allorigins.win/get?url="+encodeURIComponent(yurl), {signal:AbortSignal.timeout(8000)});
+          if(!r.ok) continue;
+          const d = await r.json();
+          const meta = JSON.parse(d.contents).chart.result[0].meta;
+          results.push({
+            symbol: sym.replace("%5E","^").replace("%3D","="),
+            regularMarketPrice: meta.regularMarketPrice,
+            regularMarketChange: meta.regularMarketPrice - meta.chartPreviousClose,
+            regularMarketChangePercent: ((meta.regularMarketPrice - meta.chartPreviousClose)/meta.chartPreviousClose)*100,
+            regularMarketDayHigh: meta.regularMarketDayHigh||meta.regularMarketPrice,
+            regularMarketDayLow: meta.regularMarketDayLow||meta.regularMarketPrice,
+          });
+        }catch(e){}
+      }
+      if(results.length>0) return results;
+      throw 0;
+    }
+  ];
+
+  for(const proxy of proxies){
+    try{
+      const result = await proxy();
+      if(result && result.length > 0) return result;
+    }catch(e){}
+  }
   return [];
 }
 
@@ -782,8 +829,15 @@ async function poll(){
 // ── BOOT ──────────────────────────────────────────────────────────────────────
 window.addEventListener("DOMContentLoaded",function(){
   poll();
-  // Live price refresh every 60s during market, 5min outside
-  setInterval(()=>{if(isMarket())poll();else updateStamp();},60000);
+  // Live price refresh every 60s during market, every 5min outside
+  setInterval(()=>{
+    updateStamp();
+    if(isMarket()) poll();
+  }, 60000);
+  // Also refresh every 5 min even outside market (for after-hours/pre-market)
+  setInterval(()=>{
+    if(!isMarket()) poll();
+  }, 300000);
   // Countdown every second
   setInterval(countdown,1000);
   countdown();
