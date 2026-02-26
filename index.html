@@ -412,8 +412,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 "use strict";
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const API_URL   = "https://nifty-api.vercel.app/api/quotes";
-const GEMINI_KEY = "AIzaSyDHuN4dVz9jIqI7Q7sJUVNlAIX1wWmbQHE";
+const API_URL    = "https://nifty-api.vercel.app/api/quotes";
+const GEMINI_URL = "https://nifty-api.vercel.app/api/gemini"; // Key is safe in Vercel env vars
 const PROXY1    = "https://api.allorigins.win/get?url=";
 const YF        = "https://query1.finance.yahoo.com/v7/finance/quote?symbols=";
 
@@ -673,20 +673,19 @@ function updateMarketData(quotes){
 
 // ── GEMINI ────────────────────────────────────────────────────────────────────
 async function callGemini(prompt, json=false){
-  if(!GEMINI_KEY) return null;
-  const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_KEY}`;
-  const finalPrompt = prompt+(json?"\n\nReturn ONLY valid JSON. No markdown, no backticks, no explanation. Raw JSON only.":"");
-  const body={contents:[{parts:[{text:finalPrompt}]}],generationConfig:{temperature:0.3,maxOutputTokens:2000}};
+  // Calls Vercel proxy — key is in Vercel env vars, never in this file
   try{
-    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok){const err=await r.text();console.error("Gemini HTTP error:",r.status,err);return null;}
-    const d=await r.json();
-    if(d.error){console.error("Gemini API error:",d.error.message);return null;}
-    const text=d.candidates?.[0]?.content?.parts?.[0]?.text||null;
-    if(!text){console.error("Gemini empty response");return null;}
-    console.log("Gemini OK, length:",text.length);
-    return text;
-  }catch(e){console.error("Gemini fetch error:",e.message);return null;}
+    const r = await fetch(GEMINI_URL, {
+      method:"POST", mode:"cors",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({prompt, json})
+    });
+    if(!r.ok){const err=await r.json();console.error("Gemini proxy error:",r.status,err);return null;}
+    const d = await r.json();
+    if(!d.ok||!d.text){console.error("Gemini proxy empty:",d);return null;}
+    console.log("Gemini OK, length:",d.text.length);
+    return d.text;
+  }catch(e){console.error("Gemini proxy error:",e.message);return null;}
 }
 
 function parseJSON(raw){
@@ -870,7 +869,7 @@ async function poll(){
   const quotes = await fetchAllQuotes();
   if(quotes.length > 0) updateMarketData(quotes);
 
-  if(!aiLoaded && GEMINI_KEY){
+  if(!aiLoaded){
     aiLoaded = true;
     fetchAIData().catch(e=>console.error("AI fetch error:",e));
   }
