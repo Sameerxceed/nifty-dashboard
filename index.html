@@ -2,356 +2,409 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nifty Live Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:      #060b14;
-    --bg2:     #0a1220;
-    --bg3:     #0e1829;
-    --border:  #1a2d45;
-    --border2: #243d5a;
-    --cyan:    #00d4ff;
-    --green:   #00f088;
-    --red:     #ff3355;
-    --yellow:  #ffd600;
-    --dim:     #3a5a78;
-    --mid:     #6a8faa;
-    --text:    #c8e0f4;
-    --bright:  #e8f4ff;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
-  
-  /* HEADER */
-  .hdr {
-    background: var(--bg2);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 24px;
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
-    position: sticky; top: 0; z-index: 100;
-  }
-  .logo { width: 36px; height: 36px; background: linear-gradient(135deg, var(--cyan), #0077ff); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; }
-  .brand { font-size: 15px; font-weight: 700; color: var(--bright); }
-  .brand-sub { font-size: 10px; color: var(--dim); margin-top: 1px; }
-  .hdr-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .badge { font-size: 10px; font-weight: 600; padding: 4px 12px; border-radius: 20px; white-space: nowrap; }
-  .badge-session { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.25); color: var(--cyan); }
-  .badge-live { background: rgba(0,240,136,0.1); border: 1px solid rgba(0,240,136,0.3); color: var(--green); animation: pulse 2s infinite; }
-  .badge-loading { background: rgba(255,214,0,0.1); border: 1px solid rgba(255,214,0,0.3); color: var(--yellow); }
-  .badge-err { background: rgba(255,51,85,0.1); border: 1px solid rgba(255,51,85,0.3); color: var(--red); }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-  .stamp { font-size: 10px; color: var(--dim); font-family: 'JetBrains Mono', monospace; background: var(--bg3); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); }
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#f0f4f8;
+  --card:#ffffff;
+  --card2:#f7f9fc;
+  --border:#e2e8f0;
+  --text:#1a202c;
+  --text2:#4a5568;
+  --dim:#a0aec0;
+  --green:#0a8a4b;
+  --green-bg:#e6f7ef;
+  --red:#c53030;
+  --red-bg:#fff5f5;
+  --yellow:#b7791f;
+  --yellow-bg:#fffbeb;
+  --blue:#2b6cb0;
+  --blue-bg:#ebf8ff;
+  --accent:#2563eb;
+  --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 6px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:0 10px 15px rgba(0,0,0,0.08),0 4px 6px rgba(0,0,0,0.04);
+  --r:12px;
+  --r-sm:8px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;}
+/* HEADER */
+.header{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;}
+.logo-text{font-size:17px;font-weight:700;color:var(--text);}
+.logo-sub{font-size:11px;color:var(--dim);font-weight:400;}
+.header-right{display:flex;align-items:center;gap:12px;}
+.session-badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--blue-bg);color:var(--blue);}
+.live-badge{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--green-bg);color:var(--green);}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.3);}}
+.time-badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--card2);color:var(--text2);font-family:'DM Mono',monospace;}
 
-  /* HERO */
-  .hero { background: linear-gradient(180deg, #0a1525 0%, var(--bg) 100%); padding: 28px 24px; border-bottom: 1px solid var(--border); }
-  .hero-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
-  .hero-label { font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; margin-bottom: 6px; }
-  .hero-price { font-family: 'JetBrains Mono', monospace; font-size: 56px; font-weight: 700; line-height: 1; letter-spacing: -2px; color: var(--green); transition: color 0.3s; }
-  .hero-change { font-size: 18px; font-weight: 600; margin-top: 6px; color: var(--green); transition: color 0.3s; }
-  .hero-meta { display: flex; gap: 20px; margin-top: 10px; }
-  .hero-meta span { font-size: 11px; color: var(--mid); font-family: 'JetBrains Mono', monospace; }
-  .hero-meta strong { color: var(--bright); }
+/* TICKER */
+.ticker-wrap{background:var(--text);overflow:hidden;height:36px;display:flex;align-items:center;}
+.ticker-inner{display:flex;animation:ticker 60s linear infinite;white-space:nowrap;}
+.ticker-inner:hover{animation-play-state:paused;}
+.ticker-item{display:inline-flex;align-items:center;gap:6px;padding:0 20px;font-size:12px;font-family:'DM Mono',monospace;}
+.ti-name{color:#94a3b8;}
+.ti-val{color:#fff;font-weight:500;}
+.ti-chg{font-size:11px;}
+.ti-up{color:#4ade80;}
+.ti-dn{color:#f87171;}
+@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
 
-  /* SENTIMENT */
-  .sentiment-box { text-align: right; }
-  .sentiment-score { font-family: 'JetBrains Mono', monospace; font-size: 52px; font-weight: 700; line-height: 1; }
-  .sentiment-label { font-size: 13px; color: var(--mid); margin-top: 4px; }
-  .sentiment-bar { width: 160px; margin: 10px 0 0 auto; }
-  .bar-track { background: rgba(255,255,255,0.05); border-radius: 4px; height: 6px; overflow: hidden; }
-  .bar-fill { height: 6px; border-radius: 4px; background: linear-gradient(90deg, var(--red), var(--yellow), var(--green)); transition: width 0.5s ease; }
-  .bar-labels { display: flex; justify-content: space-between; font-size: 8px; color: var(--dim); margin-top: 4px; }
+/* MAIN */
+.main{padding:20px 24px;max-width:1400px;margin:0 auto;}
 
-  /* TICKER STRIP */
-  .ticker { background: var(--bg3); border-bottom: 1px solid var(--border); padding: 8px 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-  .ticker-items { display: flex; gap: 0; overflow: hidden; flex-wrap: wrap; }
-  .ticker-item { display: flex; align-items: center; gap: 6px; padding: 0 16px; border-right: 1px solid var(--border); font-size: 11px; }
-  .ticker-item:last-child { border-right: none; }
-  .ticker-name { color: var(--dim); font-size: 9px; font-weight: 600; text-transform: uppercase; }
-  .ticker-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
-  .ticker-chg { font-size: 10px; }
-  .next-session { font-size: 10px; color: var(--dim); white-space: nowrap; font-family: 'JetBrains Mono', monospace; background: var(--bg2); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); }
+/* AI PREDICTION BANNER - TOP */
+.prediction-banner{background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);border-radius:var(--r);padding:20px 24px;margin-bottom:20px;color:#fff;position:relative;overflow:hidden;}
+.prediction-banner::before{content:'';position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,0.05);}
+.pb-label{font-size:11px;font-weight:600;letter-spacing:1px;opacity:0.7;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.pb-content{font-size:15px;font-weight:400;line-height:1.6;opacity:0.95;}
+.pb-loading{display:flex;align-items:center;gap:8px;opacity:0.7;font-size:13px;}
+.ai-dots{display:flex;gap:4px;}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:aidot 1.2s ease-in-out infinite;}
+.ai-dot:nth-child(2){animation-delay:0.2s;}
+.ai-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes aidot{0%,80%,100%{transform:scale(0);opacity:0.3;}40%{transform:scale(1);opacity:1;}}
+.pb-sentiment{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;margin-top:10px;}
+.pb-bull{background:rgba(74,222,128,0.2);color:#4ade80;}
+.pb-bear{background:rgba(248,113,113,0.2);color:#f87171;}
+.pb-neutral{background:rgba(251,191,36,0.2);color:#fbbf24;}
 
-  /* MAIN GRID */
-  .main { max-width: 1200px; margin: 0 auto; padding: 24px; }
-  .sec { font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--dim); text-transform: uppercase; margin: 24px 0 12px; border-left: 2px solid var(--cyan); padding-left: 10px; }
-  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .g4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
-  .g3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
-  @media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.g2,.g3{grid-template-columns:1fr}}
-  @media(max-width:500px){.g4{grid-template-columns:1fr}}
+/* HERO */
+.hero{background:var(--card);border-radius:var(--r);padding:24px;margin-bottom:20px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:20px;align-items:center;}
+.hero-main{}
+.hero-label{font-size:11px;font-weight:600;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;}
+.hero-price{font-size:42px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text);line-height:1;}
+.hero-change{font-size:16px;font-weight:600;margin-top:6px;}
+.hero-stats{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;}
+.hero-stat{font-size:12px;color:var(--text2);}
+.hero-stat span{font-weight:600;color:var(--text);font-family:'DM Mono',monospace;}
 
-  /* CARDS */
-  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-  .card-title { font-size: 9px; font-weight: 700; letter-spacing: 1px; color: var(--dim); text-transform: uppercase; margin-bottom: 12px; }
-  
-  /* METRIC CARDS */
-  .metric-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; transition: border-color 0.3s; }
-  .metric-card:hover { border-color: var(--border2); }
-  .metric-tag { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; color: var(--dim); text-transform: uppercase; margin-bottom: 8px; }
-  .metric-name { font-size: 10px; color: var(--mid); margin-bottom: 4px; }
-  .metric-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: var(--bright); }
-  .metric-sub { font-size: 10px; color: var(--mid); margin-top: 4px; }
-  .signal { display: inline-block; font-size: 8px; font-weight: 700; padding: 2px 8px; border-radius: 3px; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; }
-  .sig-up { background: rgba(0,240,136,0.1); color: var(--green); border: 1px solid rgba(0,240,136,0.25); }
-  .sig-dn { background: rgba(255,51,85,0.1); color: var(--red); border: 1px solid rgba(255,51,85,0.25); }
-  .sig-nt { background: rgba(106,143,170,0.1); color: var(--mid); border: 1px solid rgba(106,143,170,0.25); }
+/* STAT CARDS in hero */
+.hero-card{background:var(--card2);border-radius:var(--r-sm);padding:16px;border:1px solid var(--border);}
+.hc-label{font-size:11px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:flex;align-items:center;gap:4px;}
+.hc-val{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;}
+.hc-chg{font-size:12px;font-weight:500;margin-top:3px;}
+.hc-badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-top:6px;}
 
-  /* NEWS */
-  .news-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
-  .news-item:last-child { border-bottom: none; }
-  .news-top { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap; }
-  .news-tag { font-size: 8px; font-weight: 700; padding: 2px 7px; border-radius: 3px; white-space: nowrap; }
-  .news-headline { font-size: 12px; color: var(--bright); line-height: 1.5; flex: 1; }
-  .news-impact { font-size: 14px; font-weight: 700; }
-  .news-time { font-size: 9px; color: var(--dim); font-family: 'JetBrains Mono', monospace; }
-  .news-views { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .view-pill { flex: 1; min-width: 110px; border-radius: 7px; padding: 7px 10px; }
-  .view-bull { background: rgba(0,240,136,0.05); border: 1px solid rgba(0,240,136,0.2); }
-  .view-neut { background: rgba(255,214,0,0.05); border: 1px solid rgba(255,214,0,0.2); }
-  .view-bear { background: rgba(255,51,85,0.05); border: 1px solid rgba(255,51,85,0.2); }
-  .view-label { font-size: 8px; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
-  .view-bull .view-label { color: var(--green); }
-  .view-neut .view-label { color: var(--yellow); }
-  .view-bear .view-label { color: var(--red); }
-  .view-text { font-size: 10px; line-height: 1.5; }
-  .view-bull .view-text { color: #7abf9a; }
-  .view-neut .view-text { color: #bfb070; }
-  .view-bear .view-text { color: #bf7a7a; }
+/* INFO ICON */
+.info-btn{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--border);color:var(--dim);font-size:9px;font-weight:700;cursor:pointer;border:none;transition:all 0.2s;flex-shrink:0;}
+.info-btn:hover{background:var(--accent);color:#fff;}
+.info-popup{display:none;position:absolute;z-index:200;background:var(--text);color:#fff;padding:12px 14px;border-radius:var(--r-sm);font-size:12px;line-height:1.5;max-width:260px;box-shadow:var(--shadow-lg);pointer-events:none;}
+.info-popup.show{display:block;}
+.info-wrap{position:relative;display:inline-flex;align-items:center;}
 
-  /* PIVOT TABLE */
-  .pivot-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 6px; }
-  .pivot-cell { text-align: center; border-radius: 8px; padding: 10px 4px; }
-  .pivot-cell .p-lbl { font-size: 8px; font-weight: 700; margin-bottom: 4px; }
-  .pivot-cell .p-val { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; }
-  .pc-r { background: rgba(255,51,85,0.07); border: 1px solid rgba(255,51,85,0.2); }
-  .pc-r .p-lbl, .pc-r .p-val { color: var(--red); }
-  .pc-pp { background: rgba(0,212,255,0.07); border: 1px solid rgba(0,212,255,0.25); }
-  .pc-pp .p-lbl, .pc-pp .p-val { color: var(--cyan); }
-  .pc-s { background: rgba(0,240,136,0.07); border: 1px solid rgba(0,240,136,0.2); }
-  .pc-s .p-lbl, .pc-s .p-val { color: var(--green); }
-  .pivot-note { margin-top: 10px; font-size: 10px; color: var(--mid); }
+/* GRID LAYOUT */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
 
-  /* FII DII */
-  .flow-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
-  .flow-row:last-child { border-bottom: none; }
-  .flow-lbl { font-weight: 700; font-size: 12px; }
+/* CARD */
+.card{background:var(--card);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.card-title{font-size:12px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--dim);margin-bottom:16px;display:flex;align-items:center;gap:6px;}
 
-  /* 3-VIEW SECTION */
-  .three-view { background: var(--bg2); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
-  .three-view-event { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; color: var(--dim); text-transform: uppercase; margin-bottom: 6px; }
-  .three-view-headline { font-size: 15px; font-weight: 600; color: var(--bright); margin-bottom: 16px; line-height: 1.4; }
-  .three-view-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-  @media(max-width:700px){ .three-view-grid{grid-template-columns:1fr} }
-  .tv-card { border-radius: 10px; padding: 14px; }
-  .tv-bull { background: rgba(0,240,136,0.05); border: 1px solid rgba(0,240,136,0.2); }
-  .tv-neut { background: rgba(255,214,0,0.05); border: 1px solid rgba(255,214,0,0.2); }
-  .tv-bear { background: rgba(255,51,85,0.05); border: 1px solid rgba(255,51,85,0.2); }
-  .tv-lbl { font-size: 8px; font-weight: 700; letter-spacing: 1.5px; margin-bottom: 8px; }
-  .tv-bull .tv-lbl { color: var(--green); }
-  .tv-neut .tv-lbl { color: var(--yellow); }
-  .tv-bear .tv-lbl { color: var(--red); }
-  .tv-text { font-size: 12px; line-height: 1.7; }
-  .tv-bull .tv-text { color: #7abf9a; }
-  .tv-neut .tv-text { color: #bfb070; }
-  .tv-bear .tv-text { color: #bf7a7a; }
+/* SECTION LABEL */
+.section-label{font-size:13px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--text2);margin-bottom:12px;margin-top:8px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
 
-  /* OI */
-  .oi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
-  .oi-cell { text-align: center; border-radius: 10px; padding: 14px 8px; }
-  .oi-lbl { font-size: 9px; font-weight: 700; letter-spacing: 1px; margin-bottom: 6px; }
-  .oi-val { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; }
-  .oi-sub { font-size: 10px; color: var(--mid); margin-top: 4px; }
+/* PIVOT */
+.pivot-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.pv-cell{border-radius:var(--r-sm);padding:10px 6px;text-align:center;border:1px solid var(--border);}
+.pv-label{font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px;}
+.pv-val{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;}
+.pv-r3{background:#fff5f5;border-color:#fed7d7;}.pv-r3 .pv-label{color:#c53030;}.pv-r3 .pv-val{color:#c53030;}
+.pv-r2{background:#fff8f5;border-color:#fbd38d;}.pv-r2 .pv-label{color:#c05621;}.pv-r2 .pv-val{color:#c05621;}
+.pv-r1{background:#fffbeb;border-color:#fef3c7;}.pv-r1 .pv-label{color:#b7791f;}.pv-r1 .pv-val{color:#b7791f;}
+.pv-pp{background:#ebf8ff;border-color:#bee3f8;}.pv-pp .pv-label{color:#2b6cb0;}.pv-pp .pv-val{color:#2b6cb0;}
+.pv-s1{background:#f0fff4;border-color:#c6f6d5;}.pv-s1 .pv-label{color:#276749;}.pv-s1 .pv-val{color:#276749;}
+.pv-s2{background:#e6f7ef;border-color:#9ae6b4;}.pv-s2 .pv-label{color:#22543d;}.pv-s2 .pv-val{color:#22543d;}
+.pv-s3{background:#e2f5e8;border-color:#68d391;}.pv-s3 .pv-label{color:#1c4532;}.pv-s3 .pv-val{color:#1c4532;}
 
-  /* GLOBAL TABLE */
-  .global-table { width: 100%; border-collapse: collapse; }
-  .global-table tr { border-bottom: 1px solid var(--border); }
-  .global-table tr:last-child { border-bottom: none; }
-  .global-table td { padding: 8px 4px; font-size: 11px; }
-  .global-table td:first-child { color: var(--mid); }
-  .global-table td:nth-child(2) { text-align: right; font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--bright); }
-  .global-table td:nth-child(3) { text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+/* GLOBAL TABLE */
+.gtable{width:100%;border-collapse:collapse;}
+.gtable tr{border-bottom:1px solid var(--border);}
+.gtable tr:last-child{border-bottom:none;}
+.gtable td{padding:10px 6px;font-size:14px;}
+.gtable td:first-child{color:var(--text2);font-weight:500;}
+.gtable td:nth-child(2){font-family:'DM Mono',monospace;font-weight:600;text-align:right;}
+.gtable td:nth-child(3){text-align:right;font-size:12px;font-weight:600;}
 
-  /* BRIEF */
-  .brief-text { font-size: 12px; color: var(--mid); line-height: 1.8; white-space: pre-wrap; }
-  .brief-text strong { color: var(--cyan); font-weight: 600; }
+/* FII DII */
+.fiidii-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fii-card{border-radius:var(--r-sm);padding:14px;border:1px solid var(--border);}
+.fii-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;}
+.fii-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px;}
+.fii-row-label{color:var(--text2);}
+.fii-net{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-weight:700;font-size:14px;}
+.signal-badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-top:10px;}
 
-  /* LOADING SKELETON */
-  @keyframes shimmer { 0%{opacity:0.3} 50%{opacity:0.6} 100%{opacity:0.3} }
-  .skel { background: var(--border); border-radius: 4px; animation: shimmer 1.5s infinite; }
+/* NEWS */
+.news-item{padding:14px 0;border-bottom:1px solid var(--border);}
+.news-item:last-child{border-bottom:none;}
+.news-tag{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:6px;}
+.news-headline{font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px;line-height:1.4;}
+.news-views{display:flex;gap:8px;flex-wrap:wrap;}
+.view-pill{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;transition:all 0.15s;}
+.view-bull{background:var(--green-bg);color:var(--green);}
+.view-neutral{background:var(--yellow-bg);color:var(--yellow);}
+.view-bear{background:var(--red-bg);color:var(--red);}
+.view-pill.active{font-weight:700;box-shadow:inset 0 0 0 1.5px currentColor;}
+.view-text{font-size:12px;color:var(--text2);margin-top:6px;padding:8px 10px;background:var(--card2);border-radius:6px;display:none;line-height:1.5;}
+.view-text.show{display:block;}
 
-  /* FOOTER */
-  .footer { text-align: center; padding: 24px; font-size: 10px; color: var(--dim); border-top: 1px solid var(--border); margin-top: 40px; }
+/* 3-VIEW */
+.three-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;}
+.three-card{border-radius:var(--r-sm);padding:14px;border:1px solid;}
+.three-bull{background:var(--green-bg);border-color:#9ae6b4;}
+.three-bear{background:var(--red-bg);border-color:#feb2b2;}
+.three-neutral{background:var(--yellow-bg);border-color:#fef3c7;}
+.three-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.three-bull .three-label{color:var(--green);}
+.three-bear .three-label{color:var(--red);}
+.three-neutral .three-label{color:var(--yellow);}
+.three-text{font-size:13px;line-height:1.5;}
 
-  /* STALE BANNER */
-  .stale-banner { display: none; background: #1a0800; border-left: 3px solid #ff8c00; padding: 10px 24px; font-size: 12px; color: #ff8c00; }
+/* SENTIMENT */
+.sentiment-bar-wrap{margin:12px 0;}
+.sentiment-bar{height:8px;border-radius:4px;background:linear-gradient(90deg,#c53030,#fbbf24,#0a8a4b);position:relative;}
+.sentiment-needle{position:absolute;top:-4px;width:16px;height:16px;border-radius:50%;background:#1a202c;border:2px solid #fff;box-shadow:var(--shadow-md);transform:translateX(-50%);transition:left 0.8s ease;}
+.sentiment-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-top:6px;}
 
-  /* AI LOADING */
-  .ai-loading { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--dim); padding: 20px 0; }
-  .ai-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); animation: bounce 1s infinite; }
-  .ai-dot:nth-child(2){animation-delay:0.2s}
-  .ai-dot:nth-child(3){animation-delay:0.4s}
-  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+/* OI */
+.oi-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.oi-card{border-radius:var(--r-sm);padding:12px;text-align:center;border:1px solid var(--border);background:var(--card2);}
+.oi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--dim);margin-bottom:6px;}
+.oi-val{font-size:18px;font-weight:700;font-family:'DM Mono',monospace;}
+.oi-sub{font-size:11px;color:var(--dim);margin-top:3px;}
+
+/* BRIEF */
+.brief-content{font-size:14px;line-height:1.7;color:var(--text2);}
+.brief-content strong,.brief-section{font-weight:700;color:var(--text);display:block;margin-top:10px;margin-bottom:2px;font-size:13px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* PULSE CARDS */
+.pulse-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.pulse-card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--shadow);border:1px solid var(--border);}
+.pc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--dim);margin-bottom:8px;display:flex;align-items:center;gap:4px;}
+.pc-val{font-size:24px;font-weight:700;font-family:'DM Mono',monospace;}
+.pc-sub{font-size:12px;margin-top:3px;}
+.pc-badge{display:inline-flex;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;margin-top:6px;}
+
+/* COLORS */
+.up{color:var(--green);}
+.dn{color:var(--red);}
+.nt{color:var(--yellow);}
+.up-bg{background:var(--green-bg);}
+.dn-bg{background:var(--red-bg);}
+.nt-bg{background:var(--yellow-bg);}
+
+/* NEXT SESSION */
+.next-session{font-size:12px;color:var(--dim);font-family:'DM Mono',monospace;}
+
+/* TOOLTIP OVERLAY */
+.tooltip-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.3);}
+.tooltip-overlay.show{display:block;}
+.tooltip-modal{position:fixed;z-index:400;background:var(--card);border-radius:var(--r);padding:20px;max-width:320px;box-shadow:var(--shadow-lg);border:1px solid var(--border);}
+.tm-title{font-size:15px;font-weight:700;margin-bottom:8px;color:var(--text);}
+.tm-body{font-size:13px;line-height:1.6;color:var(--text2);}
+.tm-close{position:absolute;top:12px;right:12px;background:var(--card2);border:none;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:14px;color:var(--dim);}
+
+/* FOOTER */
+.footer{text-align:center;padding:20px;font-size:12px;color:var(--dim);}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .hero{grid-template-columns:1fr 1fr;}
+  .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
+  .pivot-grid{grid-template-columns:repeat(4,1fr);}
+  .three-grid,.fiidii-grid{grid-template-columns:1fr;}
+  .pulse-grid{grid-template-columns:1fr 1fr;}
+  .main{padding:12px;}
+}
 </style>
 </head>
 <body>
 
-<!-- STALE BANNER -->
-<div class="stale-banner" id="stale-banner"></div>
+<!-- TOOLTIP OVERLAY -->
+<div class="tooltip-overlay" id="tooltip-overlay" onclick="closeTooltip()"></div>
+<div class="tooltip-modal" id="tooltip-modal" style="display:none;">
+  <button class="tm-close" onclick="closeTooltip()">✕</button>
+  <div class="tm-title" id="tm-title"></div>
+  <div class="tm-body" id="tm-body"></div>
+</div>
 
 <!-- HEADER -->
-<div class="hdr">
-  <div style="display:flex;align-items:center;gap:12px">
-    <div class="logo">NB</div>
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">NB</div>
     <div>
-      <div class="brand">Nifty Live Dashboard</div>
-      <div class="brand-sub">Real-time · AI Analysis · 9-Factor Intelligence</div>
+      <div class="logo-text">Nifty Live Dashboard</div>
+      <div class="logo-sub">Real-time · AI Analysis · 9-Factor Intelligence</div>
     </div>
   </div>
-  <div class="hdr-right">
-    <span class="badge badge-session" id="session-badge">Loading...</span>
-    <span class="badge badge-loading" id="live-badge">⟳ Fetching</span>
-    <span class="stamp" id="stamp">--:--:-- IST</span>
+  <div class="header-right">
+    <span class="session-badge" id="session-label">Loading...</span>
+    <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+    <span class="time-badge" id="stamp">--:--:-- IST</span>
   </div>
 </div>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-inner">
-    <div>
-      <div class="hero-label">Nifty 50 — Live</div>
-      <div class="hero-price" id="nifty-price">—</div>
-      <div class="hero-change" id="nifty-change">— (—%)</div>
-      <div class="hero-meta">
-        <span>H: <strong id="nifty-high">—</strong></span>
-        <span>L: <strong id="nifty-low">—</strong></span>
-        <span>VIX: <strong id="vix-val">—</strong></span>
-        <span>Bank: <strong id="bank-val">—</strong></span>
-      </div>
-    </div>
-    <div class="sentiment-box">
-      <div class="hero-label" style="text-align:right">Market Sentiment</div>
-      <div class="sentiment-score" id="sentiment-score" style="color:var(--yellow)">—</div>
-      <div class="sentiment-label" id="sentiment-label">Calculating...</div>
-      <div class="sentiment-bar">
-        <div class="bar-track"><div class="bar-fill" id="sentiment-bar" style="width:50%"></div></div>
-        <div class="bar-labels"><span>BEAR</span><span>NEUTRAL</span><span>BULL</span></div>
-      </div>
-    </div>
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-inner" id="ticker-inner">
+    <div class="ticker-item"><span class="ti-name">NIFTY 50</span><span class="ti-val" id="t-nifty">—</span><span class="ti-chg" id="t-nifty-c">—</span></div>
+    <div class="ticker-item"><span class="ti-name">BANK NIFTY</span><span class="ti-val" id="t-bank">—</span><span class="ti-chg" id="t-bank-c">—</span></div>
+    <div class="ticker-item"><span class="ti-name">INDIA VIX</span><span class="ti-val" id="t-vix">—</span><span class="ti-chg" id="t-vix-c">—</span></div>
+    <div class="ticker-item"><span class="ti-name">USD/INR</span><span class="ti-val" id="t-inr">—</span><span class="ti-chg" id="t-inr-c">—</span></div>
+    <div class="ticker-item"><span class="ti-name">CRUDE WTI</span><span class="ti-val" id="t-crude">—</span><span class="ti-chg" id="t-crude-c">—</span></div>
+    <div class="ticker-item"><span class="ti-name">GOLD</span><span class="ti-val" id="t-gold">—</span><span class="ti-chg" id="t-gold-c">—</span></div>
+    <div class="ticker-item"><span class="ti-name">DOW</span><span class="ti-val" id="t-dow">—</span><span class="ti-chg" id="t-dow-c">—</span></div>
+    <div class="ticker-item"><span class="ti-name">NASDAQ</span><span class="ti-val" id="t-nas">—</span><span class="ti-chg" id="t-nas-c">—</span></div>
   </div>
 </div>
 
-<!-- TICKER STRIP -->
-<div class="ticker">
-  <div class="ticker-items" id="ticker-items">
-    <div class="ticker-item"><span class="ticker-name">Nifty 50</span><span class="ticker-val skel" style="width:60px;height:14px;display:inline-block"></span></div>
-    <div class="ticker-item"><span class="ticker-name">Bank Nifty</span><span class="ticker-val skel" style="width:60px;height:14px;display:inline-block"></span></div>
-    <div class="ticker-item"><span class="ticker-name">India VIX</span><span class="ticker-val skel" style="width:40px;height:14px;display:inline-block"></span></div>
-  </div>
-  <div class="next-session" id="next-session">Next session: calculating...</div>
-</div>
-
-<!-- MAIN -->
 <div class="main">
 
-  <!-- PRE-MARKET PULSE -->
-  <div class="sec">Pre-Market Pulse</div>
-  <div class="g4" id="pulse-cards">
-    <div class="metric-card"><div class="metric-tag">Gift Nifty</div><div class="metric-val" id="gift-val">—</div><div class="metric-sub" id="gift-sub">—</div><span class="signal sig-nt" id="gift-sig">—</span></div>
-    <div class="metric-card"><div class="metric-tag">USD / INR</div><div class="metric-val" id="inr-val">—</div><div class="metric-sub" id="inr-sub">—</div><span class="signal sig-nt" id="inr-sig">STABLE</span></div>
-    <div class="metric-card"><div class="metric-tag">Crude WTI</div><div class="metric-val" id="crude-val">—</div><div class="metric-sub" id="crude-sub">—</div><span class="signal sig-nt" id="crude-sig">—</span></div>
-    <div class="metric-card"><div class="metric-tag">India VIX</div><div class="metric-val" id="vix-card-val">—</div><div class="metric-sub" id="vix-sub">—</div><span class="signal sig-nt" id="vix-sig">MODERATE</span></div>
+  <!-- AI PREDICTION BANNER -->
+  <div class="prediction-banner">
+    <div class="pb-label">🤖 AI Market Prediction &amp; Brief <span id="sentiment-pill"></span></div>
+    <div id="brief-content" class="pb-content">
+      <div class="pb-loading"><div class="ai-dots"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div> Generating AI market analysis...</div>
+    </div>
   </div>
 
-  <!-- GLOBAL + FII/DII -->
-  <div class="sec">Global Markets &amp; Institutional Flows</div>
-  <div class="g2">
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-main">
+      <div class="hero-label">NIFTY 50 — LIVE</div>
+      <div class="hero-price" id="nifty-price">—</div>
+      <div class="hero-change" id="nifty-change">— (—%)</div>
+      <div class="hero-stats">
+        <div class="hero-stat">H: <span id="nifty-high">—</span></div>
+        <div class="hero-stat">L: <span id="nifty-low">—</span></div>
+        <div class="hero-stat">VIX: <span id="vix-val">—</span></div>
+        <div class="hero-stat">Bank: <span id="bank-val">—</span></div>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="hc-label">BANK NIFTY <button class="info-btn" onclick="showInfo('banknifty')">i</button></div>
+      <div class="hc-val" id="bank-val2">—</div>
+      <div class="hc-chg" id="bank-chg">—</div>
+    </div>
+
+    <div class="hero-card">
+      <div class="hc-label">INDIA VIX <button class="info-btn" onclick="showInfo('vix')">i</button></div>
+      <div class="hc-val" id="vix-val2">—</div>
+      <div class="hc-chg" id="vix-chg">—</div>
+      <div class="hc-badge" id="vix-badge">—</div>
+    </div>
+
+    <div class="hero-card">
+      <div class="hc-label">MARKET SENTIMENT <button class="info-btn" onclick="showInfo('sentiment')">i</button></div>
+      <div class="hc-val" id="sentiment-score">—</div>
+      <div class="sentiment-bar-wrap">
+        <div class="sentiment-bar"><div class="sentiment-needle" id="sentiment-needle" style="left:50%"></div></div>
+        <div class="sentiment-labels"><span>Bear</span><span>Neutral</span><span>Bull</span></div>
+      </div>
+      <div class="hc-chg" id="sentiment-label-text" style="font-size:11px;color:var(--dim)">Calculating...</div>
+    </div>
+  </div>
+
+  <!-- PRE-MARKET PULSE -->
+  <div class="section-label">Pre-Market Pulse</div>
+  <div class="pulse-grid">
+    <div class="pulse-card">
+      <div class="pc-label">GIFT NIFTY <button class="info-btn" onclick="showInfo('giftnifty')">i</button></div>
+      <div class="pc-val" id="gift-val">—</div>
+      <div class="pc-sub" id="gift-sub">—</div>
+      <div class="pc-badge" id="gift-badge">—</div>
+    </div>
+    <div class="pulse-card">
+      <div class="pc-label">USD / INR <button class="info-btn" onclick="showInfo('usdinr')">i</button></div>
+      <div class="pc-val" id="inr-val">—</div>
+      <div class="pc-sub" id="inr-sub">—</div>
+      <div class="pc-badge" id="inr-badge">—</div>
+    </div>
+    <div class="pulse-card">
+      <div class="pc-label">CRUDE WTI <button class="info-btn" onclick="showInfo('crude')">i</button></div>
+      <div class="pc-val" id="crude-val">—</div>
+      <div class="pc-sub" id="crude-sub">—</div>
+      <div class="pc-badge" id="crude-badge">—</div>
+    </div>
+    <div class="pulse-card">
+      <div class="pc-label">GOLD <button class="info-btn" onclick="showInfo('gold')">i</button></div>
+      <div class="pc-val" id="gold-val">—</div>
+      <div class="pc-sub" id="gold-sub">—</div>
+      <div class="pc-badge" id="gold-badge">—</div>
+    </div>
+  </div>
+
+  <!-- GLOBAL MARKETS + FII/DII -->
+  <div class="grid-2">
     <div class="card">
-      <div class="card-title">Global Markets</div>
-      <table class="global-table" id="global-table">
+      <div class="card-title">🌍 Global Markets <button class="info-btn" onclick="showInfo('global')">i</button></div>
+      <table class="gtable" id="global-table">
         <tr><td>Dow Jones</td><td id="dow-val">—</td><td id="dow-chg">—</td></tr>
         <tr><td>Nasdaq</td><td id="nas-val">—</td><td id="nas-chg">—</td></tr>
         <tr><td>Nikkei 225</td><td id="nik-val">—</td><td id="nik-chg">—</td></tr>
         <tr><td>Hang Seng</td><td id="hsi-val">—</td><td id="hsi-chg">—</td></tr>
         <tr><td>FTSE 100</td><td id="ftse-val">—</td><td id="ftse-chg">—</td></tr>
-        <tr><td>SGX Nifty</td><td id="sgx-val">—</td><td id="sgx-chg">—</td></tr>
       </table>
     </div>
     <div class="card">
-      <div class="card-title">FII + DII Flows</div>
+      <div class="card-title">🏦 FII + DII Flows <button class="info-btn" onclick="showInfo('fiidii')">i</button></div>
       <div id="fiidii-content">
-        <div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>Fetching flow data via AI...</span></div>
+        <div style="color:var(--dim);font-size:13px;">Loading AI data...</div>
       </div>
     </div>
   </div>
 
-  <!-- PIVOTS -->
-  <div class="sec">Nifty Pivot Levels</div>
-  <div class="card">
+  <!-- PIVOT LEVELS -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">📐 Nifty Pivot Levels <button class="info-btn" onclick="showInfo('pivots')">i</button></div>
     <div class="pivot-grid" id="pivot-grid">
-      <div class="pivot-cell pc-r"><div class="p-lbl">R3</div><div class="p-val" id="p-r3">—</div></div>
-      <div class="pivot-cell pc-r"><div class="p-lbl">R2</div><div class="p-val" id="p-r2">—</div></div>
-      <div class="pivot-cell pc-r"><div class="p-lbl">R1</div><div class="p-val" id="p-r1">—</div></div>
-      <div class="pivot-cell pc-pp"><div class="p-lbl">PP</div><div class="p-val" id="p-pp">—</div></div>
-      <div class="pivot-cell pc-s"><div class="p-lbl">S1</div><div class="p-val" id="p-s1">—</div></div>
-      <div class="pivot-cell pc-s"><div class="p-lbl">S2</div><div class="p-val" id="p-s2">—</div></div>
-      <div class="pivot-cell pc-s"><div class="p-lbl">S3</div><div class="p-val" id="p-s3">—</div></div>
+      <div class="pv-cell pv-r3"><div class="pv-label">R3</div><div class="pv-val" id="pv-r3">—</div></div>
+      <div class="pv-cell pv-r2"><div class="pv-label">R2</div><div class="pv-val" id="pv-r2">—</div></div>
+      <div class="pv-cell pv-r1"><div class="pv-label">R1</div><div class="pv-val" id="pv-r1">—</div></div>
+      <div class="pv-cell pv-pp"><div class="pv-label">PP</div><div class="pv-val" id="pv-pp">—</div></div>
+      <div class="pv-cell pv-s1"><div class="pv-label">S1</div><div class="pv-val" id="pv-s1">—</div></div>
+      <div class="pv-cell pv-s2"><div class="pv-label">S2</div><div class="pv-val" id="pv-s2">—</div></div>
+      <div class="pv-cell pv-s3"><div class="pv-label">S3</div><div class="pv-val" id="pv-s3">—</div></div>
     </div>
-    <div class="pivot-note" id="pivot-note">Pivot levels loading...</div>
+    <div style="font-size:11px;color:var(--dim);margin-top:10px;" id="pivot-source">Calculated from previous day OHLC</div>
   </div>
 
   <!-- OI + NEWS -->
-  <div class="sec">Options Data &amp; Breaking News</div>
-  <div class="g2">
+  <div class="grid-2">
     <div class="card">
-      <div class="card-title">OI &amp; Max Pain</div>
-      <div class="oi-grid">
-        <div class="oi-cell" style="background:rgba(179,136,255,0.06);border:1px solid rgba(179,136,255,0.2)">
-          <div class="oi-lbl" style="color:#b388ff">MAX PAIN</div>
-          <div class="oi-val" id="oi-maxpain" style="color:#b388ff">—</div>
-          <div class="oi-sub">PCR: <span id="oi-pcr">—</span></div>
-        </div>
-        <div class="oi-cell" style="background:rgba(255,51,85,0.06);border:1px solid rgba(255,51,85,0.2)">
-          <div class="oi-lbl" style="color:var(--red)">MAX CALL OI</div>
-          <div class="oi-val" id="oi-ce" style="color:var(--red)">—</div>
-          <div class="oi-sub">Resistance</div>
-        </div>
-        <div class="oi-cell" style="background:rgba(0,240,136,0.06);border:1px solid rgba(0,240,136,0.2)">
-          <div class="oi-lbl" style="color:var(--green)">MAX PUT OI</div>
-          <div class="oi-val" id="oi-pe" style="color:var(--green)">—</div>
-          <div class="oi-sub">Support</div>
-        </div>
+      <div class="card-title">📊 Options Data <button class="info-btn" onclick="showInfo('oi')">i</button></div>
+      <div class="oi-grid" id="oi-grid">
+        <div class="oi-card"><div class="oi-label">Max Pain</div><div class="oi-val" id="oi-maxpain">—</div><div class="oi-sub">Strike</div></div>
+        <div class="oi-card"><div class="oi-label">PCR <button class="info-btn" onclick="showInfo('pcr')">i</button></div><div class="oi-val" id="oi-pcr">—</div><div class="oi-sub" id="oi-pcr-sig">—</div></div>
+        <div class="oi-card"><div class="oi-label">Max Call OI</div><div class="oi-val up" id="oi-ce">—</div><div class="oi-sub">Resistance</div></div>
       </div>
     </div>
     <div class="card">
-      <div class="card-title">Breaking News + 3 Views</div>
-      <div id="news-container">
-        <div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>Fetching news via AI...</span></div>
-      </div>
+      <div class="card-title">📰 Breaking News + 3 Views <button class="info-btn" onclick="showInfo('news')">i</button></div>
+      <div id="news-container"><div style="color:var(--dim);font-size:13px;">Loading AI data...</div></div>
     </div>
   </div>
 
   <!-- 3-VIEW ANALYSIS -->
-  <div class="sec">3-View Analysis — Key Event of the Day</div>
-  <div class="three-view" id="three-view-section">
-    <div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>AI generating 3-view analysis...</span></div>
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">🔭 3-View Analysis — Key Event of the Day <button class="info-btn" onclick="showInfo('threeview')">i</button></div>
+    <div id="three-view-section"><div style="color:var(--dim);font-size:13px;">Loading AI data...</div></div>
   </div>
 
-  <!-- MORNING BRIEF -->
-  <div class="sec">AI Market Brief</div>
-  <div class="card">
-    <div class="card-title">Gemini AI Analysis</div>
-    <div id="brief-content">
-      <div class="ai-loading"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div><span>AI generating market brief...</span></div>
-    </div>
+  <div class="footer">
+    Nifty Live Dashboard · Real-time data via Yahoo Finance · AI Analysis via Gemini ·
+    <span id="footer-stamp"></span> · Not financial advice
   </div>
-
-</div>
-
-<div class="footer">
-  Nifty Live Dashboard · Real-time data via Yahoo Finance · AI Analysis via Gemini · 
-  <span id="footer-stamp">—</span> · Not financial advice
 </div>
 
 <script>
@@ -359,354 +412,291 @@
 "use strict";
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const API_URL = "https://nifty-api.vercel.app/api/quotes";
+const API_URL   = "https://nifty-api.vercel.app/api/quotes";
 const GEMINI_KEY = "AIzaSyAopPCmY7wrhsPoUiwgfbWp6Z_boCctQd0";
+const PROXY1    = "https://api.allorigins.win/get?url=";
+const YF        = "https://query1.finance.yahoo.com/v7/finance/quote?symbols=";
 
-// Fallback proxies (used only if Vercel API is unavailable)
-const PROXY1 = "https://api.allorigins.win/get?url=";
-const YF     = "https://query1.finance.yahoo.com/v7/finance/quote?symbols=";
-
-// Symbols
-const SYMS = {
-  nifty: "%5ENSEI",
-  bank:  "%5ENSEBANK",
-  vix:   "%5EINDIAVIX",
-  inr:   "USDINR%3DX",
-  crude: "CL%3DF",
-  dow:   "%5EDJI",
-  nas:   "%5EIXIC",
-  nik:   "%5EN225",
-  hsi:   "%5EHSI",
-  ftse:  "%5EFTSE",
-  sgx:   "^NSESGX"
+// ── INFO TOOLTIPS ─────────────────────────────────────────────────────────────
+const INFO = {
+  banknifty: ["Bank Nifty", "Index of 12 most liquid banking stocks on NSE. Highly sensitive to RBI policy, interest rates, and credit events. A strong Bank Nifty often confirms broader market strength; weakness can signal sector stress and drag Nifty lower."],
+  vix: ["India VIX (Volatility Index)", "Measures expected market volatility over next 30 days. VIX < 12 = Low fear, trending market. VIX 12–16 = Normal. VIX > 20 = High fear, expect sharp moves. Contrarian indicator — very high VIX often near market bottoms."],
+  sentiment: ["Market Sentiment Score", "Composite score 0–100 based on FII flows, global cues, VIX, Gift Nifty, and technical levels. Score > 60 = Bullish bias. Score 40–60 = Neutral. Score < 40 = Bearish. Use with price action, not in isolation."],
+  giftnifty: ["Gift Nifty (SGX Nifty)", "Nifty futures traded on GIFT City exchange. Acts as a pre-market indicator for how Nifty will open. If Gift Nifty is up 100pts, Nifty likely opens 80–100pts higher. Strong predictor of opening direction."],
+  usdinr: ["USD/INR Exchange Rate", "Dollar-Rupee rate directly impacts FII flows, import costs, and corporate earnings. Rupee depreciation (higher number) is negative for markets as it raises import costs and may trigger FII outflows. Stable rupee = positive."],
+  crude: ["Crude Oil (WTI)", "India imports 85% of its oil. Rising crude increases inflation, widens current account deficit, weakens rupee, and compresses margins for oil-consuming sectors. Crude below $75 is generally positive for India. Above $90 is a headwind."],
+  gold: ["Gold (XAU/USD)", "Safe-haven asset. Gold rising sharply often signals risk-off sentiment and global uncertainty — can be negative signal for equities. Gold ETFs via MCX also influence Indian market sentiment and FII behavior."],
+  global: ["Global Markets", "India's Nifty is highly correlated with US markets (Nasdaq/S&P500) and Asian markets. Positive US close is usually a tailwind for Nifty open. Watch Nasdaq for tech sentiment, Nikkei/Hang Seng for Asian cues. SGX Nifty is the most direct indicator."],
+  fiidii: ["FII & DII Flows", "FII (Foreign Institutional Investors): Foreign money. Net buyers = bullish signal, can move markets significantly. Net sellers = bearish, often causes sharp falls. DII (Domestic Institutional Investors): Indian funds (MFs, insurance). Often counter-trade FIIs — buy when FIIs sell, acting as a cushion."],
+  pivots: ["Pivot Points", "Support/Resistance levels calculated from previous day's High, Low, Close. PP = Pivot Point (neutral level). R1/R2/R3 = Resistance levels above. S1/S2/S3 = Support levels below. Price above PP = bullish bias. Below PP = bearish. Strong price reaction expected at these levels."],
+  oi: ["Open Interest (OI) Data", "Total outstanding options contracts. Max Pain = strike where most options expire worthless — markets often gravitate here near expiry. PCR (Put-Call Ratio) > 1.2 = Bullish (more put writing). PCR < 0.8 = Bearish. Max Call OI strike = strong resistance. Max Put OI strike = strong support."],
+  pcr: ["Put-Call Ratio (PCR)", "Ratio of Put OI to Call OI. PCR > 1.5 = Extremely bullish (markets overshoot bearish bets). PCR 1.0–1.3 = Mildly bullish. PCR 0.7–1.0 = Neutral to bearish. PCR < 0.7 = Bearish (excessive call buying, often signals a top)."],
+  news: ["Breaking News + 3 Views", "Each news item is analyzed from 3 perspectives: 🟢 Bull View = How a bullish trader interprets this positively. 🟡 Neutral View = Balanced take with no directional bias. 🔴 Bear View = How a bearish trader sees risks. Click each pill to expand that view."],
+  threeview: ["3-View Analysis", "Deep-dive analysis of today's single most important market event or data point. Three distinct perspectives help you understand both the opportunity and the risk, so you can form your own informed trading bias."],
 };
+
+function showInfo(key){
+  const [title,body] = INFO[key]||["Info","No data."];
+  document.getElementById("tm-title").textContent = title;
+  document.getElementById("tm-body").textContent = body;
+  const modal = document.getElementById("tooltip-modal");
+  modal.style.display = "block";
+  modal.style.top = "50%";
+  modal.style.left = "50%";
+  modal.style.transform = "translate(-50%,-50%)";
+  document.getElementById("tooltip-overlay").classList.add("show");
+}
+function closeTooltip(){
+  document.getElementById("tooltip-modal").style.display = "none";
+  document.getElementById("tooltip-overlay").classList.remove("show");
+}
 
 // ── HELPERS ───────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
-const fmt = (n,d=2) => n==null?"—":Number(n).toLocaleString("en-IN",{minimumFractionDigits:d,maximumFractionDigits:d});
-const fmtC = n => n==null?"—":(n>=0?"+":"")+fmt(n,2);
-const fmtP = n => n==null?"—":(n>=0?"+":"")+fmt(n,2)+"%";
-const col  = n => n>0?"var(--green)":n<0?"var(--red)":"var(--mid)";
-const esc  = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const set = (id,v) => { const e=$(id); if(e) e.textContent=v; };
+const setH = (id,v) => { const e=$(id); if(e) e.innerHTML=v; };
+const setC = (id,cls) => { const e=$(id); if(e) e.className=e.className.replace(/ ?(up|dn|nt)/g,"")+(" "+cls); };
 
-function set(id,v){ const e=$(id); if(e) e.textContent=v; }
-function setH(id,v){ const e=$(id); if(e) e.innerHTML=v; }
-function setC(id,c){ const e=$(id); if(e) e.style.color=c; }
+function fmt(n,d=2){ if(n==null||isNaN(n)) return "—"; return Number(n).toLocaleString("en-IN",{minimumFractionDigits:d,maximumFractionDigits:d}); }
+function fmtC(n){ if(n==null||isNaN(n)) return "—"; return (n>=0?"+":"")+fmt(n,2); }
+function fmtP(n){ if(n==null||isNaN(n)) return "—%"; return (n>=0?"+":"")+fmt(n,2)+"%"; }
+function col(n){ return n>0?"up":n<0?"dn":"nt"; }
+function colStyle(n){ return n>0?"color:var(--green)":n<0?"color:var(--red)":"color:var(--yellow)"; }
 
-// ── SESSION LOGIC ─────────────────────────────────────────────────────────────
-function getIST(){
-  // Use browser's built-in timezone - most reliable
-  return new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Kolkata"}));
-}
-function getSession(){
-  const now = new Date();
-  const h = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",hour12:false}));
-  const m = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",minute:"2-digit"}));
-  const t = h*60+m;
-  if(t<9*60+15)  return ["Morning Brief 8:00 AM","morning_brief"];
-  if(t<11*60+15) return ["Market Open 9:15 AM","session_1"];
-  if(t<13*60+15) return ["Mid-Morning 11:15 AM","session_2"];
-  if(t<15*60+15) return ["Post-Lunch 1:15 PM","session_3"];
-  if(t<15*60+45) return ["Pre-Close 3:15 PM","closing"];
-  return ["After Market","after_market"];
-}
-function isMarket(){
-  const now = new Date();
-  const day = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",weekday:"short"}) === "Sun" ? 0 : 
-               now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",weekday:"short"}) === "Sat" ? 6 : 1);
-  // Simpler: use UTC day adjusted for IST
-  const istOffset = 5.5 * 60; // IST is UTC+5:30
-  const istDate = new Date(now.getTime() + istOffset * 60000);
-  const d = istDate.getUTCDay();
-  if(d===0||d===6) return false;
-  const h = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",hour12:false}));
-  const m = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",minute:"2-digit"}));
-  const t = h*60+m;
-  return t>=9*60+15 && t<=15*60+30;
-}
-
-// ── STAMP + COUNTDOWN ─────────────────────────────────────────────────────────
-function updateStamp(){
-  const now = new Date();
-  // Get IST time components directly
-  const istStr = now.toLocaleString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    hour:"2-digit", minute:"2-digit", second:"2-digit",
-    hour12: false
-  });
-  const dateStr = now.toLocaleDateString("en-IN", {
-    timeZone: "Asia/Kolkata",
-    day:"2-digit", month:"short", year:"numeric"
-  });
-  set("stamp", istStr + " IST");
-  set("footer-stamp", "Updated " + istStr + " IST · " + dateStr);
-}
-
-function countdown(){
-  const sessions=[[8,0,"Morning Brief"],[9,15,"Market Open"],[11,15,"Mid-Morning"],[13,15,"Post-Lunch"],[15,15,"Pre-Close"]];
+// ── IST TIME ─────────────────────────────────────────────────────────────────
+function getISTparts(){
   const now = new Date();
   const h = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",hour12:false}));
   const m = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",minute:"2-digit"}));
   const s = parseInt(now.toLocaleString("en-IN",{timeZone:"Asia/Kolkata",second:"2-digit"}));
-  const cur=h*3600+m*60+s;
-  let nxt=null,lbl="";
-  for(const[sh,sm,sl]of sessions){const t=sh*3600+sm*60;if(t>cur){nxt=t;lbl=sl;break;}}
-  if(!nxt){set("next-session","All sessions complete for today");return;}
-  const d=nxt-cur,rh=Math.floor(d/3600),rm=Math.floor((d%3600)/60),rs=d%60;
-  const p=x=>String(x).padStart(2,"0");
-  set("next-session","Next: "+lbl+" in "+(rh>0?rh+"h ":"")+p(rm)+"m "+p(rs)+"s");
+  const day = now.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",weekday:"short"});
+  return {h,m,s,t:h*60+m,isWeekend:day==="Sun"||day==="Sat"};
 }
 
-// ── PRIMARY API + FALLBACK ───────────────────────────────────────────────────
-// Timeout wrapper - works in ALL browsers
+function updateStamp(){
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false});
+  const dateStr = now.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",day:"2-digit",month:"short",year:"numeric"});
+  set("stamp", timeStr + " IST");
+  set("footer-stamp", "Updated " + timeStr + " IST · " + dateStr);
+}
+
+function isMarket(){
+  const {h,m,t,isWeekend} = getISTparts();
+  if(isWeekend) return false;
+  return t >= 9*60+15 && t <= 15*60+30;
+}
+
+function getSession(){
+  const {t} = getISTparts();
+  if(t < 8*60)    return "Pre-Market";
+  if(t < 9*60+15) return "Morning Brief 8:00 AM";
+  if(t < 11*60+15) return "Market Open 9:15 AM";
+  if(t < 13*60+15) return "Mid-Morning 11:15 AM";
+  if(t < 15*60+15) return "Post-Lunch 1:15 PM";
+  if(t < 15*60+45) return "Pre-Close 3:15 PM";
+  return "After Market";
+}
+
+function countdown(){
+  const sessions=[[8,0,"Morning Brief"],[9,15,"Market Open"],[11,15,"Mid-Morning"],[13,15,"Post-Lunch"],[15,15,"Pre-Close"]];
+  const {h,m,s,t} = getISTparts();
+  const cur=h*3600+m*60+s;
+  let nxt=null,lbl="";
+  for(const[sh,sm,sl]of sessions){const st=sh*3600+sm*60;if(st>cur){nxt=st;lbl=sl;break;}}
+  const el = $("next-session-info");
+  if(!el) return;
+  if(!nxt){el.textContent="All sessions complete for today";return;}
+  const d=nxt-cur,rh=Math.floor(d/3600),rm=Math.floor((d%3600)/60),rs=d%60;
+  const p=x=>String(x).padStart(2,"0");
+  el.textContent="Next: "+lbl+" in "+(rh>0?rh+"h ":"")+p(rm)+"m "+p(rs)+"s";
+}
+
+// ── PIVOT CALCULATION (formula-based) ─────────────────────────────────────────
+function calcPivots(high, low, close){
+  const pp  = (high + low + close) / 3;
+  const r1  = 2*pp - low;
+  const s1  = 2*pp - high;
+  const r2  = pp + (high - low);
+  const s2  = pp - (high - low);
+  const r3  = high + 2*(pp - low);
+  const s3  = low  - 2*(high - pp);
+  return {pp,r1,s1,r2,s2,r3,s3};
+}
+
+function renderPivotsFromOHLC(high, low, close){
+  const p = calcPivots(high, low, close);
+  set("pv-r3", fmt(p.r3,0));
+  set("pv-r2", fmt(p.r2,0));
+  set("pv-r1", fmt(p.r1,0));
+  set("pv-pp", fmt(p.pp,0));
+  set("pv-s1", fmt(p.s1,0));
+  set("pv-s2", fmt(p.s2,0));
+  set("pv-s3", fmt(p.s3,0));
+  set("pivot-source", `Calculated from Prev H:${fmt(high,0)} L:${fmt(low,0)} C:${fmt(close,0)}`);
+}
+
+// ── FETCH API ─────────────────────────────────────────────────────────────────
 function fetchWithTimeout(url, ms, opts){
-  const finalOpts = Object.assign({method:"GET", mode:"cors", headers:{"Accept":"application/json"}}, opts||{});
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("Timeout after "+ms+"ms")), ms);
+  const finalOpts = Object.assign({method:"GET",mode:"cors",headers:{"Accept":"application/json"}}, opts||{});
+  return new Promise((resolve,reject) => {
+    const timer = setTimeout(() => reject(new Error("Timeout")), ms);
     fetch(url, finalOpts)
-      .then(r => { clearTimeout(timer); resolve(r); })
-      .catch(e => { clearTimeout(timer); reject(e); });
+      .then(r=>{clearTimeout(timer);resolve(r);})
+      .catch(e=>{clearTimeout(timer);reject(e);});
   });
 }
 
 async function fetchAllQuotes(){
-  // PRIMARY: Vercel API - fast, reliable, no CORS
-  try {
-    const r = await fetchWithTimeout(API_URL + "?t=" + Date.now(), 8000);
-    if (!r.ok) throw new Error("HTTP " + r.status);
+  try{
+    const r = await fetchWithTimeout(API_URL+"?t="+Date.now(), 8000);
+    if(!r.ok) throw new Error("HTTP "+r.status);
     const d = await r.json();
-    if (d.ok && d.quotes && d.quotes.length > 0) {
-      return d.quotes.map(q => ({
-        symbol: q.symbol, name: q.name,
-        price: q.price, change: q.change, changePct: q.changePct,
-        high: q.high, low: q.low, open: q.open, prevClose: q.prevClose,
-        regularMarketPrice: q.price, regularMarketChange: q.change,
-        regularMarketChangePercent: q.changePct,
-        regularMarketDayHigh: q.high, regularMarketDayLow: q.low,
+    if(d.ok && d.quotes && d.quotes.length>0){
+      return d.quotes.map(q=>({
+        symbol:q.symbol, name:q.name,
+        price:q.price, change:q.change, changePct:q.changePct,
+        high:q.high, low:q.low, open:q.open, prevClose:q.prevClose,
+        regularMarketPrice:q.price, regularMarketChange:q.change,
+        regularMarketChangePercent:q.changePct,
+        regularMarketDayHigh:q.high, regularMarketDayLow:q.low,
+        regularMarketPreviousClose:q.prevClose,
       }));
     }
-  } catch(e) { console.warn("Vercel API failed:", e.message); }
+  } catch(e){ console.warn("Vercel API failed:",e.message); }
 
-  // FALLBACK: allorigins proxy
-  try {
-    const syms = "%5ENSEI,%5ENSEBANK,%5EINDIAVIX,USDINR%3DX,CL%3DF,GC%3DF,%5EDJI,%5EIXIC,%5EN225,%5EHSI,%5EFTSE";
-    const url  = YF + syms + "&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketDayHigh,regularMarketDayLow,shortName,symbol";
-    const r = await fetchWithTimeout(PROXY1 + encodeURIComponent(url), 10000);
-    if (!r.ok) throw 0;
+  try{
+    const syms="%5ENSEI,%5ENSEBANK,%5EINDIAVIX,USDINR%3DX,CL%3DF,GC%3DF,%5EDJI,%5EIXIC,%5EN225,%5EHSI,%5EFTSE";
+    const url=YF+syms+"&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketDayHigh,regularMarketDayLow,regularMarketPreviousClose,shortName,symbol";
+    const r = await fetchWithTimeout(PROXY1+encodeURIComponent(url), 10000);
+    if(!r.ok) throw 0;
     const d = await r.json();
-    const quotes = JSON.parse(d.contents).quoteResponse.result || [];
-    if (quotes.length > 0) return quotes;
-  } catch(e) {}
+    return JSON.parse(d.contents).quoteResponse.result||[];
+  } catch(e){}
 
   return [];
 }
 
-// ── FETCH WITH PROXY FALLBACK ─────────────────────────────────────────────────
-async function fetchYF(symbols){
-  // This is kept as fallback only - main fetch uses fetchAllQuotes()
-  try {
-    const url = YF + symbols + "&fields=regularMarketPrice,regularMarketChange,regularMarketChangePercent,regularMarketDayHigh,regularMarketDayLow,shortName,symbol";
-    const r = await fetch(PROXY1 + encodeURIComponent(url), {});
-    if (!r.ok) throw 0;
-    const d = await r.json();
-    return JSON.parse(d.contents).quoteResponse.result || [];
-  } catch(e) { return []; }
-}
-
-// ── UPDATE HERO + TICKER ──────────────────────────────────────────────────────
+// ── UPDATE MARKET DATA ────────────────────────────────────────────────────────
 function updateMarketData(quotes){
-  // Direct symbol matching from API response
-  const bySymbol = sym => quotes.find(q=>q.symbol===sym||q.symbol===sym.replace("^","%5E").replace("=","="));
-  const nifty  = bySymbol("^NSEI")    || quotes.find(q=>q.symbol&&q.symbol.includes("NSEI")&&!q.symbol.includes("BANK"));
-  const bank   = bySymbol("^NSEBANK") || quotes.find(q=>q.symbol&&q.symbol.includes("NSEBANK"));
-  const vix    = bySymbol("^INDIAVIX")|| quotes.find(q=>q.symbol&&q.symbol.includes("INDIAVIX"));
-  const inr    = bySymbol("USDINR=X") || quotes.find(q=>q.symbol&&q.symbol.includes("USDINR"));
-  const crude  = bySymbol("CL=F")     || quotes.find(q=>q.symbol&&(q.symbol==="CL=F"||q.symbol.includes("CL%3DF")));
-  const gold   = bySymbol("GC=F")     || quotes.find(q=>q.symbol&&q.symbol.includes("GC"));
-  const dow    = bySymbol("^DJI")     || quotes.find(q=>q.symbol&&q.symbol.includes("DJI"));
-  const nas    = bySymbol("^IXIC")    || quotes.find(q=>q.symbol&&q.symbol.includes("IXIC"));
-  const nik    = bySymbol("^N225")    || quotes.find(q=>q.symbol&&q.symbol.includes("N225"));
-  const hsi    = bySymbol("^HSI")     || quotes.find(q=>q.symbol&&q.symbol.includes("HSI"));
-  const ftse   = bySymbol("^FTSE")    || quotes.find(q=>q.symbol&&q.symbol.includes("FTSE"));
-  const sgx    = null; // SGX not in API currently
+  const byS = sym => quotes.find(q=>q.symbol===sym||q.symbol===sym.replace("^","%5E"));
+  const nifty = byS("^NSEI")    || quotes.find(q=>q.symbol&&q.symbol.includes("NSEI")&&!q.symbol.includes("BANK"));
+  const bank  = byS("^NSEBANK") || quotes.find(q=>q.symbol&&q.symbol.includes("NSEBANK"));
+  const vix   = byS("^INDIAVIX")|| quotes.find(q=>q.symbol&&q.symbol.includes("INDIAVIX"));
+  const inr   = byS("USDINR=X") || quotes.find(q=>q.symbol&&q.symbol.includes("USDINR"));
+  const crude = byS("CL=F")     || quotes.find(q=>q.symbol&&q.symbol.includes("CL=F"));
+  const gold  = byS("GC=F")     || quotes.find(q=>q.symbol&&q.symbol.includes("GC=F")||q.symbol&&q.symbol.includes("GC%3DF"));
+  const dow   = byS("^DJI")     || quotes.find(q=>q.symbol&&q.symbol.includes("DJI"));
+  const nas   = byS("^IXIC")    || quotes.find(q=>q.symbol&&q.symbol.includes("IXIC"));
+  const nik   = byS("^N225")    || quotes.find(q=>q.symbol&&q.symbol.includes("N225"));
+  const hsi   = byS("^HSI")     || quotes.find(q=>q.symbol&&q.symbol.includes("HSI"));
+  const ftse  = byS("^FTSE")    || quotes.find(q=>q.symbol&&q.symbol.includes("FTSE"));
 
-  // Helper to get value from either API format (normalized or raw Yahoo)
-  const gp  = q => q.price || q.regularMarketPrice;
-  const gc  = q => q.change || q.regularMarketChange;
-  const gcp = q => q.changePct || q.regularMarketChangePercent;
-  const gh  = q => q.high || q.regularMarketDayHigh;
-  const gl  = q => q.low  || q.regularMarketDayLow;
+  const gp = q=>q.price||q.regularMarketPrice;
+  const gc = q=>q.change||q.regularMarketChange;
+  const gcp= q=>q.changePct||q.regularMarketChangePercent;
+  const gh = q=>q.high||q.regularMarketDayHigh;
+  const gl = q=>q.low||q.regularMarketDayLow;
+  const gprev=q=>q.prevClose||q.regularMarketPreviousClose;
 
   if(nifty){
     const c=col(gc(nifty));
-    set("nifty-price", fmt(gp(nifty),2));
-    set("nifty-change", fmtC(gc(nifty))+" ("+fmtP(gcp(nifty))+")");
+    const el=$("nifty-price"); if(el){el.textContent=fmt(gp(nifty),2);el.className="hero-price "+c;}
+    const ec=$("nifty-change"); if(ec){ec.textContent=fmtC(gc(nifty))+" ("+fmtP(gcp(nifty))+")";ec.className="hero-change "+c;}
     set("nifty-high", fmt(gh(nifty),2));
     set("nifty-low",  fmt(gl(nifty),2));
-    setC("nifty-price",c); setC("nifty-change",c);
+    // Calculate pivots from previous day data
+    const prev = gprev(nifty);
+    const hi   = gh(nifty);
+    const lo   = gl(nifty);
+    if(prev && hi && lo) renderPivotsFromOHLC(hi, lo, prev);
   }
   if(bank){
+    const c=col(gc(bank));
     set("bank-val", fmt(gp(bank),2));
-    setC("bank-val", col(gc(bank)));
+    set("bank-val2", fmt(gp(bank),2));
+    const bc=$("bank-chg"); if(bc){bc.textContent=fmtC(gc(bank))+" ("+fmtP(gcp(bank))+")";bc.style=colStyle(gc(bank));}
+    setC("bank-val","");
   }
   if(vix){
     const vp=gp(vix);
-    const vc=vp>16?"var(--red)":vp>12?"var(--yellow)":"var(--green)";
-    set("vix-val", fmt(vp,2)); setC("vix-val",vc);
-    set("vix-card-val", fmt(vp,2)); setC("vix-card-val",vc);
-    set("vix-sub","Change: "+fmtC(gc(vix)));
-    const lvl = vp>16?"ELEVATED":vp>12?"MODERATE":"LOW";
-    const sc  = vp>16?"sig-dn":vp>12?"sig-nt":"sig-up";
-    const vs=$("vix-sig"); if(vs){vs.textContent=lvl;vs.className="signal "+sc;}
+    const vc=vp>16?"dn":vp>12?"nt":"up";
+    set("vix-val", fmt(vp,2));
+    set("vix-val2", fmt(vp,2));
+    const vc2=$("vix-chg"); if(vc2){vc2.textContent=fmtC(gc(vix));vc2.style=colStyle(gc(vix));}
+    const vb=$("vix-badge");
+    if(vb){
+      const lvl=vp>16?"ELEVATED":vp>12?"MODERATE":"LOW";
+      const cls=vp>16?"dn-bg dn":vp>12?"nt-bg nt":"up-bg up";
+      vb.textContent=lvl; vb.className="hc-badge "+cls;
+    }
   }
   if(inr){
-    set("inr-val","₹"+fmt(inr.regularMarketPrice||inr.price,2));
-    const inrChg = inr.regularMarketChange||inr.change||0;
-    set("inr-sub","Change: "+fmtC(inrChg));
-    const s=inrChg>0?"RUPEE WEAK":"RUPEE STRONG";
-    const sc=inrChg>0?"sig-dn":"sig-up";
-    const el=$("inr-sig"); if(el){el.textContent=s;el.className="signal "+sc;}
+    const ip=gp(inr), ic=gc(inr)||0;
+    set("inr-val","₹"+fmt(ip,2));
+    const is=$("inr-sub"); if(is){is.textContent="Change: "+fmtC(ic);is.style=colStyle(ic);}
+    const ib=$("inr-badge"); if(ib){ib.textContent=ic>0?"RUPEE WEAK":"RUPEE STRONG";ib.className="pc-badge "+(ic>0?"dn-bg dn":"up-bg up");}
   }
   if(crude){
-    const cp=crude.regularMarketPrice||crude.price;
-    const cc=crude.regularMarketChange||crude.change||0;
-    const cpct=crude.regularMarketChangePercent||crude.changePct||0;
+    const cp=gp(crude),cc=gc(crude)||0,cpct=gcp(crude)||0;
     set("crude-val","$"+fmt(cp,2));
-    set("crude-sub",fmtC(cc)+" ("+fmtP(cpct)+")");
-    const sc=cc>0?"sig-dn":"sig-up";
-    const s=cc>0?"BULLISH CRUDE":"BEARISH CRUDE";
-    const el=$("crude-sig"); if(el){el.textContent=s;el.className="signal "+sc;}
+    const cs=$("crude-sub"); if(cs){cs.textContent=fmtC(cc)+" ("+fmtP(cpct)+")";cs.style=colStyle(cc);}
+    const cb=$("crude-badge"); if(cb){cb.textContent=cc>0?"CRUDE RISING":"CRUDE FALLING";cb.className="pc-badge "+(cc>0?"dn-bg dn":"up-bg up");}
+  }
+  if(gold){
+    const gop=gp(gold),goc=gc(gold)||0,gopct=gcp(gold)||0;
+    set("gold-val","$"+fmt(gop,2));
+    const gs=$("gold-sub"); if(gs){gs.textContent=fmtC(goc)+" ("+fmtP(gopct)+")";gs.style=colStyle(goc);}
+    const gb=$("gold-badge"); if(gb){gb.textContent=goc>0?"GOLD UP":"GOLD DOWN";gb.className="pc-badge "+(goc>0?"up-bg up":"dn-bg dn");}
+  }
+
+  // Ticker
+  const pairs=[
+    ["t-nifty","t-nifty-c",nifty],["t-bank","t-bank-c",bank],["t-vix","t-vix-c",vix],
+    ["t-inr","t-inr-c",inr],["t-crude","t-crude-c",crude],["t-gold","t-gold-c",gold],
+    ["t-dow","t-dow-c",dow],["t-nas","t-nas-c",nas]
+  ];
+  for(const[vi,ci,q]of pairs){
+    if(!q) continue;
+    set(vi, fmt(gp(q),2));
+    const ce=$(ci); if(ce){ce.textContent=fmtC(gc(q))+" ("+fmtP(gcp(q))+")";ce.className="ti-chg "+(gc(q)>=0?"ti-up":"ti-dn");}
   }
 
   // Global table
-  // Global markets
-  const globalMap = [
-    ["dow", dow], ["nas", nas], ["nik", nik], ["hsi", hsi], ["ftse", ftse]
-  ];
-  for(const[pfx,q] of globalMap){
+  const globals=[["dow",dow],["nas",nas],["nik",nik],["hsi",hsi],["ftse",ftse]];
+  for(const[pfx,q]of globals){
     if(!q) continue;
-    const c=col(gc(q));
     set(pfx+"-val", fmt(gp(q),2));
-    const ce=$(pfx+"-chg");
-    if(ce){ce.textContent=fmtC(gc(q))+" ("+fmtP(gcp(q))+")";ce.style.color=c;}
-  }
-
-  // Ticker strip
-  const tickerData=[
-    {q:nifty, name:"Nifty 50"},
-    {q:bank,  name:"Bank Nifty"},
-    {q:vix,   name:"India VIX"},
-    {q:inr,   name:"USD/INR"},
-    {q:crude, name:"Crude WTI"},
-    {q:gold,  name:"Gold"},
-    {q:dow,   name:"Dow"},
-    {q:nas,   name:"Nasdaq"},
-  ].filter(x=>x.q);
-  const ti=$("ticker-items");
-  if(ti){
-    ti.innerHTML=tickerData.map(({q,name})=>{
-      const c=col(gc(q));
-      return `<div class="ticker-item"><span class="ticker-name">${name}</span><span class="ticker-val" style="color:${c}">${fmt(gp(q),2)}</span><span class="ticker-chg" style="color:${c}">&nbsp;${fmtC(gc(q))}&nbsp;(${fmtP(gcp(q))})</span></div>`;
-    }).join('<span style="color:var(--border)">|</span>');
+    const ce=$(pfx+"-chg"); if(ce){ce.textContent=fmtC(gc(q))+" ("+fmtP(gcp(q))+")";ce.style=colStyle(gc(q));}
   }
 }
 
-// ── GEMINI AI CALLS ───────────────────────────────────────────────────────────
+// ── GEMINI ────────────────────────────────────────────────────────────────────
 async function callGemini(prompt, json=false){
   if(!GEMINI_KEY) return null;
   const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_KEY}`;
-  const finalPrompt = prompt + (json ? "\n\nReturn ONLY valid JSON. No markdown, no backticks, no explanation. Raw JSON only." : "");
-  const body={
-    contents:[{parts:[{text:finalPrompt}]}],
-    generationConfig:{temperature:0.3,maxOutputTokens:2000}
-  };
+  const finalPrompt = prompt+(json?"\n\nReturn ONLY valid JSON. No markdown, no backticks, no explanation. Raw JSON only.":"");
+  const body={contents:[{parts:[{text:finalPrompt}]}],generationConfig:{temperature:0.3,maxOutputTokens:2000}};
   try{
     const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-    if(!r.ok){
-      const err=await r.text();
-      console.error("Gemini HTTP error:",r.status,err);
-      return null;
-    }
+    if(!r.ok){const err=await r.text();console.error("Gemini HTTP error:",r.status,err);return null;}
     const d=await r.json();
-    if(d.error){console.error("Gemini API error:",d.error.message); return null;}
-    const text = d.candidates?.[0]?.content?.parts?.[0]?.text||null;
-    if(!text){console.error("Gemini empty response:",JSON.stringify(d)); return null;}
+    if(d.error){console.error("Gemini API error:",d.error.message);return null;}
+    const text=d.candidates?.[0]?.content?.parts?.[0]?.text||null;
+    if(!text){console.error("Gemini empty response");return null;}
     console.log("Gemini OK, length:",text.length);
     return text;
-  }catch(e){
-    console.error("Gemini fetch error:",e.message);
-    return null;
-  }
-}
-
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-async function fetchAIData(){
-  const now = new Date();
-  const today = now.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",weekday:"long",day:"2-digit",month:"long",year:"numeric"});
-  const time = now.toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hour12:false});
-  console.log("Fetching AI data for:",today,time);
-
-  // Call sequentially with 2s delay to avoid rate limiting (free tier = 15 req/min)
-  // Batch 1: Most important - pivots + sentiment + perspectives (one combined call)
-  const combined = await callGemini(
-    `You are a Nifty 50 market analyst. Today is ${today} ${time} IST. Answer ALL of the following in one JSON response:
-1. Nifty pivot levels based on yesterday's OHLC
-2. Top 3 breaking news affecting Nifty today with bull/neutral/bear views
-3. FII DII cash market flows today
-4. Options max pain and PCR
-5. Overall market sentiment score 0-100
-6. The single most important event today with 3 perspectives
-7. A brief 100-word market summary
-
-Return this exact JSON structure:
-{
-  "pivots": {"prev_high":"","prev_low":"","prev_close":"","r3":"","r2":"","r1":"","pp":"","s1":"","s2":"","s3":""},
-  "news": [{"tag":"MARKET","headline":"","impact":"positive","time":"","bull":"","neutral":"","bear":""}],
-  "fiidii": {"fii":{"buy":"","sell":"","net":""},"dii":{"buy":"","sell":"","net":""},"signal":""},
-  "oi": {"max_pain":"","pcr":"","top_ce_strike":"","top_pe_strike":""},
-  "sentiment": {"score":50,"label":"Neutral","summary":""},
-  "perspectives": {"key_event":"","bull_view":"","neutral_view":"","bear_view":""},
-  "brief": ""
-}`, true);
-
-  const d = parseJSON(combined);
-  if(d){
-    console.log("Gemini combined response OK");
-    renderNews(d.news);
-    renderFIIDII(d.fiidii);
-    renderPivots(d.pivots);
-    renderOI(d.oi);
-    renderSentiment(d.sentiment);
-    renderPerspectives(d.perspectives);
-    renderBrief(d.brief);
-  } else {
-    console.warn("Combined parse failed, trying individual calls...");
-    // Fallback: individual calls with delays
-    const pivots = await callGemini(`Nifty 50 pivot levels ${today}. Return JSON: {"r3":"","r2":"","r1":"","pp":"","s1":"","s2":"","s3":"","prev_high":"","prev_low":"","prev_close":""}`, true);
-    renderPivots(parseJSON(pivots));
-    await sleep(3000);
-
-    const sentiment = await callGemini(`Nifty market sentiment score today ${today}. Return JSON: {"score":50,"label":"Neutral","summary":"one sentence"}`, true);
-    renderSentiment(parseJSON(sentiment));
-    await sleep(3000);
-
-    const brief = await callGemini(`Brief 80-word Nifty market summary for ${today} ${time} IST. Key levels, FII trend, global cues, verdict.`, false);
-    renderBrief(brief);
-  }
+  }catch(e){console.error("Gemini fetch error:",e.message);return null;}
 }
 
 function parseJSON(raw){
   if(!raw) return null;
   try{
-    // Strip markdown code blocks
     let clean=raw.replace(/```json\s*/gi,"").replace(/```\s*/g,"").trim();
-    // Extract first JSON object or array
     const m=clean.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
     if(!m) return null;
     return JSON.parse(m[1]);
   }catch(e){
-    // Try finding JSON after common preamble text
     try{
       const start=raw.search(/[\[\{]/);
       if(start===-1) return null;
@@ -717,162 +707,188 @@ function parseJSON(raw){
   }
 }
 
-// ── RENDERERS ─────────────────────────────────────────────────────────────────
-const tagCols={"GEO":"#ff6b35","MARKET":"#00c8ff","MACRO":"#b388ff","SECTOR":"#ffd600"};
-const impSym={"positive":"▲","negative":"▼","neutral":"●"};
-const impCol={"positive":"var(--green)","negative":"var(--red)","neutral":"var(--mid)"};
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
 
-function renderNews(items){
-  const el=$("news-container"); if(!el) return;
-  if(!items||!items.length){el.innerHTML='<div style="color:var(--dim);font-size:12px;padding:16px 0">No news data available</div>';return;}
-  el.innerHTML=items.map(n=>{
-    const tc=tagCols[n.tag]||"#00c8ff";
-    const ic=impCol[n.impact]||"var(--mid)";
-    const is=impSym[n.impact]||"●";
-    return `<div class="news-item">
-      <div class="news-top">
-        <span class="news-tag" style="background:${tc}22;color:${tc}">${esc(n.tag||"")}</span>
-        <span class="news-headline">${esc(n.headline||"")}</span>
-        <span class="news-impact" style="color:${ic}">${is}</span>
-        ${n.time?`<span class="news-time">${esc(n.time)}</span>`:""}
-      </div>
-      ${(n.bull||n.neutral||n.bear)?`<div class="news-views">
-        ${n.bull?`<div class="view-pill view-bull"><div class="view-label">▲ BULL</div><div class="view-text">${esc(n.bull)}</div></div>`:""}
-        ${n.neutral?`<div class="view-pill view-neut"><div class="view-label">● NEUTRAL</div><div class="view-text">${esc(n.neutral)}</div></div>`:""}
-        ${n.bear?`<div class="view-pill view-bear"><div class="view-label">▼ BEAR</div><div class="view-text">${esc(n.bear)}</div></div>`:""}
-      </div>`:""}
-    </div>`;
-  }).join("");
+async function fetchAIData(){
+  const now = new Date();
+  const today = now.toLocaleDateString("en-IN",{timeZone:"Asia/Kolkata",weekday:"long",day:"2-digit",month:"long",year:"numeric"});
+  const time = now.toLocaleTimeString("en-IN",{timeZone:"Asia/Kolkata",hour:"2-digit",minute:"2-digit",hour12:false});
+  console.log("Fetching AI data for:",today,time);
+
+  const combined = await callGemini(
+    `You are a Nifty 50 market analyst. Today is ${today}, time ${time} IST.
+Return this exact JSON (no extra text):
+{
+  "news": [{"tag":"MARKET","headline":"","impact":"positive","bull":"","neutral":"","bear":""},{"tag":"MACRO","headline":"","impact":"neutral","bull":"","neutral":"","bear":""},{"tag":"GEO","headline":"","impact":"negative","bull":"","neutral":"","bear":""}],
+  "fiidii": {"fii":{"buy":"0","sell":"0","net":"0"},"dii":{"buy":"0","sell":"0","net":"0"},"signal":"mixed"},
+  "oi": {"max_pain":"25000","pcr":"1.1","top_ce_strike":"25500","top_pe_strike":"25000"},
+  "sentiment": {"score":50,"label":"Neutral","summary":"Market sentiment is balanced today."},
+  "perspectives": {"key_event":"Key market event today","bull_view":"Bullish perspective with target levels","neutral_view":"Balanced view with range","bear_view":"Bearish risk with support levels"},
+  "brief": "OPENING: Market context. KEY LEVELS: Important levels. FII SENTIMENT: Flow direction. GLOBAL CUES: Impact. VERDICT: Trading bias for today."
+}
+Fill ALL fields with real current data for ${today}. Impact must be positive/negative/neutral.`, true);
+
+  const d = parseJSON(combined);
+  if(d){
+    console.log("Gemini combined OK");
+    renderNews(d.news);
+    renderFIIDII(d.fiidii);
+    renderOI(d.oi);
+    renderSentiment(d.sentiment);
+    renderPerspectives(d.perspectives);
+    renderBrief(d.brief);
+  } else {
+    console.warn("JSON parse failed, trying text mode...");
+    const text = await callGemini(
+      `Brief Nifty 50 market analysis for ${today} ${time} IST. Cover: opening context, key levels, FII trend, global cues, trading verdict. Under 120 words.`, false);
+    if(text) renderBrief(text);
+  }
+}
+
+// ── RENDERERS ─────────────────────────────────────────────────────────────────
+function renderBrief(text){
+  if(!text){setH("brief-content",'<span style="opacity:0.6">AI brief unavailable</span>');return;}
+  // Format section headers
+  const formatted = text
+    .replace(/\n/g,"<br>")
+    .replace(/([A-Z][A-Z\s]+):/g,'<strong>$1:</strong>');
+  setH("brief-content", formatted);
+}
+
+function renderSentiment(d){
+  if(!d||!d.score) return;
+  const score = parseInt(d.score)||50;
+  const label = d.label||"Neutral";
+  const summary = d.summary||"";
+  set("sentiment-score", score+"/100");
+  const needle=$("sentiment-needle"); if(needle) needle.style.left=score+"%";
+  const cls = score>60?"pb-bull":score<40?"pb-bear":"pb-neutral";
+  const icon = score>60?"🟢":score<40?"🔴":"🟡";
+  setH("sentiment-pill",`<span class="pb-sentiment ${cls}">${icon} ${label}</span>`);
+  set("sentiment-label-text", summary);
 }
 
 function renderFIIDII(d){
-  const el=$("fiidii-content"); if(!el) return;
-  if(!d||!d.fii){el.innerHTML='<div style="color:var(--dim);font-size:12px;padding:8px 0">FII/DII data pending</div>';return;}
-  const fii=d.fii||{}, dii=d.dii||{};
-  const nc=v=>v&&v.toString().startsWith("-")?"var(--red)":"var(--green)";
-  const sig=d.signal||"mixed";
-  const sc=sig.includes("buy")?"var(--green)":sig.includes("sell")?"var(--red)":"var(--yellow)";
-  el.innerHTML=`
-    <div class="flow-row"><span class="flow-lbl" style="color:var(--cyan)">FII</span><span>Buy <strong style="color:var(--green)">₹${esc(fii.buy||"—")}Cr</strong></span><span>Sell <strong style="color:var(--red)">₹${esc(fii.sell||"—")}Cr</strong></span><strong style="color:${nc(fii.net)}">Net ₹${esc(fii.net||"—")}Cr</strong></div>
-    <div class="flow-row"><span class="flow-lbl" style="color:var(--yellow)">DII</span><span>Buy <strong style="color:var(--green)">₹${esc(dii.buy||"—")}Cr</strong></span><span>Sell <strong style="color:var(--red)">₹${esc(dii.sell||"—")}Cr</strong></span><strong style="color:${nc(dii.net)}">Net ₹${esc(dii.net||"—")}Cr</strong></div>
-    <div style="margin-top:12px;font-size:11px;color:var(--mid)">Signal: <strong style="color:${sc}">${esc(sig.replace(/_/g," ").toUpperCase())}</strong></div>`;
+  if(!d||!d.fii){setH("fiidii-content",'<span style="color:var(--dim);font-size:13px">Data pending</span>');return;}
+  const sig = d.signal||"mixed";
+  const sigCls = sig.includes("buying")?"up-bg up":sig.includes("selling")?"dn-bg dn":"nt-bg nt";
+  const sigText = sig==="both_buying"?"BOTH BUYING 🟢":sig==="both_selling"?"BOTH SELLING 🔴":"MIXED 🟡";
+  setH("fiidii-content",`
+    <div class="fiidii-grid">
+      <div class="fii-card">
+        <div class="fii-title" style="color:var(--blue)">FII (Foreign)</div>
+        <div class="fii-row"><span class="fii-row-label">Buy</span><span class="up">₹${d.fii.buy||"—"} Cr</span></div>
+        <div class="fii-row"><span class="fii-row-label">Sell</span><span class="dn">₹${d.fii.sell||"—"} Cr</span></div>
+        <div class="fii-net"><span>Net</span><span style="${parseFloat(d.fii.net)>=0?"color:var(--green)":"color:var(--red)"}">₹${d.fii.net||"—"} Cr</span></div>
+      </div>
+      <div class="fii-card">
+        <div class="fii-title" style="color:var(--accent)">DII (Domestic)</div>
+        <div class="fii-row"><span class="fii-row-label">Buy</span><span class="up">₹${d.dii.buy||"—"} Cr</span></div>
+        <div class="fii-row"><span class="fii-row-label">Sell</span><span class="dn">₹${d.dii.sell||"—"} Cr</span></div>
+        <div class="fii-net"><span>Net</span><span style="${parseFloat(d.dii.net)>=0?"color:var(--green)":"color:var(--red)"}">₹${d.dii.net||"—"} Cr</span></div>
+      </div>
+    </div>
+    <div class="signal-badge ${sigCls}">${sigText}</div>
+  `);
 }
 
-function renderPivots(p){
-  if(!p) return;
-  const keys=["r3","r2","r1","pp","s1","s2","s3"];
-  keys.forEach(k=>{ const e=$(` p-${k}`); if(e) e.textContent=p[k]||"—"; });
-  // Fix: use correct IDs
-  ["r3","r2","r1","pp","s1","s2","s3"].forEach(k=>{
-    const e=document.getElementById("p-"+k); if(e) e.textContent=p[k]||"—";
-  });
-  const note=$("pivot-note");
-  if(note) note.textContent=`Prev H:${p.prev_high||"—"} L:${p.prev_low||"—"} C:${p.prev_close||"—"} · Above PP ${p.pp||"—"} = Bullish · Below = Bearish`;
+function renderPivots(d){
+  // If AI provides overriding data, use it (else already set from OHLC)
+  if(!d||!d.pp) return;
+  set("pv-r3",d.r3||"—"); set("pv-r2",d.r2||"—"); set("pv-r1",d.r1||"—");
+  set("pv-pp",d.pp||"—");
+  set("pv-s1",d.s1||"—"); set("pv-s2",d.s2||"—"); set("pv-s3",d.s3||"—");
 }
 
 function renderOI(d){
   if(!d) return;
-  set("oi-maxpain",d.max_pain||"—");
-  set("oi-pcr",d.pcr||"—");
-  set("oi-ce",d.top_ce_strike||"—");
-  set("oi-pe",d.top_pe_strike||"—");
+  set("oi-maxpain", d.max_pain||"—");
+  const pcr = parseFloat(d.pcr)||0;
+  set("oi-pcr", d.pcr||"—");
+  const pcrSig=$("oi-pcr-sig"); if(pcrSig){pcrSig.textContent=pcr>1.2?"Bullish":pcr<0.8?"Bearish":"Neutral";pcrSig.style=pcr>1.2?"color:var(--green)":pcr<0.8?"color:var(--red)":"color:var(--yellow)";}
+  set("oi-ce", d.top_ce_strike||"—");
 }
 
-function renderSentiment(d){
-  if(!d) return;
-  const score=d.score||50;
-  const c=score>65?"var(--green)":score>45?"var(--yellow)":"var(--red)";
-  set("sentiment-score",score); setC("sentiment-score",c);
-  set("sentiment-label",d.label||"Neutral");
-  const bar=$("sentiment-bar"); if(bar) bar.style.width=score+"%";
+function renderNews(items){
+  if(!items||!items.length){setH("news-container",'<span style="color:var(--dim);font-size:13px">News data unavailable</span>');return;}
+  const tagColors={"MARKET":"background:#ebf8ff;color:#2b6cb0","MACRO":"background:#f0fff4;color:#276749","GEO":"background:#fff5f5;color:#c53030","SECTOR":"background:#faf5ff;color:#6b46c1","GLOBAL":"background:#fffbeb;color:#b7791f"};
+  const html = items.slice(0,4).map((item,i)=>`
+    <div class="news-item">
+      <span class="news-tag" style="${tagColors[item.tag]||tagColors.MARKET}">${item.tag||"NEWS"}</span>
+      <div class="news-headline">${item.headline||""}</div>
+      <div class="news-views">
+        ${item.bull?`<span class="view-pill view-bull" onclick="toggleView(this,'bull-${i}')">🟢 Bull</span>`:""}
+        ${item.neutral?`<span class="view-pill view-neutral" onclick="toggleView(this,'nt-${i}')">🟡 Neutral</span>`:""}
+        ${item.bear?`<span class="view-pill view-bear" onclick="toggleView(this,'bear-${i}')">🔴 Bear</span>`:""}
+      </div>
+      ${item.bull?`<div class="view-text" id="bull-${i}">${item.bull}</div>`:""}
+      ${item.neutral?`<div class="view-text" id="nt-${i}">${item.neutral||item.neutral_view||""}</div>`:""}
+      ${item.bear?`<div class="view-text" id="bear-${i}">${item.bear}</div>`:""}
+    </div>
+  `).join("");
+  setH("news-container", html);
 }
 
-function renderPerspectives(p){
-  const el=$("three-view-section"); if(!el) return;
-  if(!p||!p.key_event){el.innerHTML='<div style="color:var(--dim);font-size:12px;padding:8px 0">3-view analysis pending</div>';return;}
-  el.innerHTML=`
-    <div class="three-view-event">Key Event</div>
-    <div class="three-view-headline">${esc(p.key_event||"")}</div>
-    <div class="three-view-grid">
-      <div class="tv-card tv-bull"><div class="tv-lbl">▲ BULL CASE</div><div class="tv-text">${esc(p.bull_view||"")}</div></div>
-      <div class="tv-card tv-neut"><div class="tv-lbl">● NEUTRAL CASE</div><div class="tv-text">${esc(p.neutral_view||"")}</div></div>
-      <div class="tv-card tv-bear"><div class="tv-lbl">▼ BEAR CASE</div><div class="tv-text">${esc(p.bear_view||"")}</div></div>
-    </div>`;
+function toggleView(btn, id){
+  const el=$(id); if(!el) return;
+  const showing=el.classList.contains("show");
+  // Close all views in same news item
+  btn.closest(".news-item").querySelectorAll(".view-text").forEach(e=>e.classList.remove("show"));
+  btn.closest(".news-item").querySelectorAll(".view-pill").forEach(e=>e.classList.remove("active"));
+  if(!showing){el.classList.add("show");btn.classList.add("active");}
 }
 
-function renderBrief(text){
-  const el=$("brief-content"); if(!el) return;
-  if(!text){el.innerHTML='<div style="color:var(--dim);font-size:12px">AI brief pending — add GEMINI_API_KEY to see analysis</div>';return;}
-  // Highlight section headers
-  const html=esc(text).replace(/([A-Z][A-Z\s&]+):/g,'<strong style="color:var(--cyan)">$1:</strong>');
-  el.innerHTML=`<div class="brief-text">${html}</div>`;
+function renderPerspectives(d){
+  if(!d||!d.key_event){setH("three-view-section",'<span style="color:var(--dim);font-size:13px">Data pending</span>');return;}
+  setH("three-view-section",`
+    <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;">📌 ${d.key_event}</div>
+    <div class="three-grid">
+      <div class="three-card three-bull">
+        <div class="three-label">🟢 Bull View</div>
+        <div class="three-text">${d.bull_view||""}</div>
+      </div>
+      <div class="three-card three-neutral">
+        <div class="three-label">🟡 Neutral View</div>
+        <div class="three-text">${d.neutral_view||""}</div>
+      </div>
+      <div class="three-card three-bear">
+        <div class="three-label">🔴 Bear View</div>
+        <div class="three-text">${d.bear_view||""}</div>
+      </div>
+    </div>
+  `);
 }
 
-// ── GIFT NIFTY (from Yahoo SGX proxy) ────────────────────────────────────────
-function updateGift(quotes){
-  const sgx = quotes.find(q=>q.symbol&&(q.symbol.includes("NSESGX")||q.symbol.includes("SGX")));
-  const nifty= quotes.find(q=>q.symbol&&q.symbol.includes("NSEI")&&!q.symbol.includes("BANK"));
-  if(sgx&&nifty){
-    const gap=(sgx.regularMarketPrice-nifty.regularMarketPrice).toFixed(0);
-    const sig=gap>50?"GAP UP":gap<-50?"GAP DOWN":"FLAT";
-    const sc=gap>50?"sig-up":gap<-50?"sig-dn":"sig-nt";
-    set("gift-val",fmt(sgx.regularMarketPrice,0));
-    set("gift-sub",fmtC(sgx.regularMarketChange)+" Gap: "+(gap>0?"+":"")+gap+"pts");
-    const el=$("gift-sig"); if(el){el.textContent=sig;el.className="signal "+sc;}
-  }
-}
-
-// ── MAIN POLL ─────────────────────────────────────────────────────────────────
-let aiLoaded=false;
+// ── MAIN POLL LOOP ────────────────────────────────────────────────────────────
+let aiLoaded = false;
 
 async function poll(){
   updateStamp();
-  const [sess] = getSession();
-  set("session-badge",sess);
+  set("session-label", getSession());
+  countdown();
 
-  const badge=$("live-badge");
-  if(badge){badge.textContent="⟳ Fetching";badge.className="badge badge-loading";}
+  const quotes = await fetchAllQuotes();
+  if(quotes.length > 0) updateMarketData(quotes);
 
-  try{
-    // Single API call gets all quotes at once (fast + reliable)
-    const quotes = await fetchAllQuotes();
-
-    if(quotes.length>0){
-      updateMarketData(quotes);
-      updateGift(quotes);
-      if(badge){badge.textContent="● LIVE";badge.className="badge badge-live";}
-    } else {
-      if(badge){badge.textContent="○ Data unavailable";badge.className="badge badge-err";}
-    }
-  }catch(e){
-    if(badge){badge.textContent="○ Error";badge.className="badge badge-err";}
-  }
-
-  // Load AI data once on first load
   if(!aiLoaded && GEMINI_KEY){
-    aiLoaded=true;
-    fetchAIData().catch(()=>{});
-  } else if(!aiLoaded){
-    aiLoaded=true; // will load when key is entered via banner
+    aiLoaded = true;
+    fetchAIData().catch(e=>console.error("AI fetch error:",e));
   }
+
+  const delay = isMarket() ? 60000 : 300000;
+  setTimeout(poll, delay);
 }
 
-// ── BOOT ──────────────────────────────────────────────────────────────────────
-window.addEventListener("DOMContentLoaded",function(){
+setInterval(updateStamp, 1000);
+
+window.addEventListener("DOMContentLoaded", function(){
   poll();
-  // Live price refresh every 60s during market, every 5min outside
-  setInterval(()=>{
-    updateStamp();
-    if(isMarket()) poll();
-  }, 60000);
-  // Also refresh every 5 min even outside market (for after-hours/pre-market)
-  setInterval(()=>{
-    if(!isMarket()) poll();
-  }, 300000);
-  // Countdown every second
-  setInterval(countdown,1000);
-  countdown();
 });
+
+// Expose toggleView and showInfo globally
+window.toggleView = toggleView;
+window.showInfo = showInfo;
+window.closeTooltip = closeTooltip;
 
 })();
 </script>
