@@ -715,7 +715,7 @@ async function fetchAIData(){
   console.log("Fetching AI data for:",today,time);
 
   const combined = await callGemini(
-    `You are a Nifty 50 market analyst. Today is ${today}, time ${time} IST.
+    `You are a Nifty 50 market analyst with access to real-time data. The current date and time is ${today}, ${time} IST. This is the present moment, not a future date. Provide analysis based on current market conditions.
 Return this exact JSON (no extra text):
 {
   "news": [{"tag":"MARKET","headline":"","impact":"positive","bull":"","neutral":"","bear":""},{"tag":"MACRO","headline":"","impact":"neutral","bull":"","neutral":"","bear":""},{"tag":"GEO","headline":"","impact":"negative","bull":"","neutral":"","bear":""}],
