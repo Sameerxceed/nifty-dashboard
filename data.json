@@ -34,19 +34,11 @@
   },
   "pivot_alerts": [],
   "intraday_analysis": "",
-  "session": "session_3",
-  "session_label": "Post-Lunch 1:15 PM",
-  "updated_time": "13:36",
+  "session": "closing",
+  "session_label": "Pre-Close 3:15 PM",
+  "updated_time": "15:51",
   "updated_date": "Friday, 27 February 2026",
   "all_sessions": [
-    {
-      "time": "15:59",
-      "session": "closing",
-      "label": "Pre-Close 3:15 PM",
-      "nifty": "N/A",
-      "change": "+0",
-      "trend": "neutral"
-    },
     {
       "time": "10:35",
       "session": "session_1",
@@ -67,6 +59,14 @@
       "time": "13:36",
       "session": "session_3",
       "label": "Post-Lunch 1:15 PM",
+      "nifty": "N/A",
+      "change": "+0",
+      "trend": "neutral"
+    },
+    {
+      "time": "15:51",
+      "session": "closing",
+      "label": "Pre-Close 3:15 PM",
       "nifty": "N/A",
       "change": "+0",
       "trend": "neutral"
