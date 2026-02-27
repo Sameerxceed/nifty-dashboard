@@ -36,7 +36,7 @@
   "intraday_analysis": "",
   "session": "session_1",
   "session_label": "Market Open 9:15 AM",
-  "updated_time": "09:54",
+  "updated_time": "10:35",
   "updated_date": "Friday, 27 February 2026",
   "all_sessions": [
     {
@@ -64,7 +64,7 @@
       "trend": "neutral"
     },
     {
-      "time": "09:54",
+      "time": "10:35",
       "session": "session_1",
       "label": "Market Open 9:15 AM",
       "nifty": "N/A",
